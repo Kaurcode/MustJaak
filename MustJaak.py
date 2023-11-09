@@ -15,15 +15,20 @@ KaardiVäärtus = {kaart: väärtus for kaart, väärtus in zip(kaardid, väärt
 
 kaardipakk = [] #Tühi muutuja, mida kasutatakse kaardipakina
 PakiKogus = 4 #Mitu kaardipakki korraga kasutuses on?
-
+KaardiHulk = 0
 #Segab kaardipaki ära
 def sega():
     global kaardipakk
     global PakiKogus
+    global KaardiHulk
     kaardipakk = PakiKogus * list(kaardid)
     shuffle(kaardipakk)
+    KaardiHulk = PakiKogus * 52
 
 #Kaardi kaardipakist võtmisfunktsioon
 def hit():
     global kaardipakk
+    global KaardiHulk
+    if KaardiHulk == 0: sega()
+    KaardiHulk -= 1
     return kaardipakk.pop(0)
