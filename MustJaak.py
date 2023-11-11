@@ -5,6 +5,9 @@ from random import shuffle, randint
 class Kaardipakk:
     # Uus segatud kaardipakk (klassi välja kutsumisel)
     def __init__(self, pakikogus):
+        # Muutuja kaardi tähistamiseks
+        self.kaart = None
+
         # Loob kaardid ühe kaardipaki jaoks
         mastid = ("Ruu", "Ärt", "Pot", "Ris")
         ühikud = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
@@ -23,8 +26,8 @@ class Kaardipakk:
     # Kaardipakist võetakse uus kaart
     def hit(self):
         self.kaardihulk -= 1
-        kaart = self.kaardipakk.pop(0)
-        return kaart, self.KaardiVäärtus[kaart]
+        self.kaart = self.kaardipakk.pop(0)
+        return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
 class Mängija:
@@ -34,14 +37,93 @@ class Mängija:
         self.väärtus = 0
         self.A11 = 0
 
-    def uuskaart(self, kaart, väärtus):
-        self.kaardid.append(kaart)
-        self.väärtus += väärtus
+    def uuskaart(self, kaartväärtus, n=1):
+        while n > 0:
+            kaart, väärtus = kaartväärtus
+            self.kaardid.append(kaart)
+            self.väärtus += väärtus
 
-        self.A11 += 1 if kaart[3:] == "A" else 0
-        if self.väärtus > 21 and self.A11 > 0:
-            self.väärtus -= 10
-            self.A11 -= 1
+            self.A11 += 1 if kaart[3:] == "A" else 0
+            if self.väärtus > 21 and self.A11 > 0:
+                self.väärtus -= 10
+                self.A11 -= 1
+
+            n -= 1
+
+
+# Olenevalt kaartidest väljastab funktsioon parima valiku
+# Blackjacki basic strateegia võtsin Blackjacki Wikipeedia saidilt: https://en.wikipedia.org/wiki/Blackjack
+# S = Stand; H = Hit; Dh = Double/Hit; Ds = Double/Stand; SP = Split
+# Uh = Surrender/hit; Us = Surrender/stand; Usp = Surrender/split
+def strateegia(väärtus, kaardid, diiler):
+    paar = len(kaardid) == 2  # Kas on kaks kaarti?
+    pildikaart = ("J", "Q", "K")
+    kaardid_pildita = ["10" if kaart[3:] in pildikaart else kaart[3:] for kaart in kaardid]  # Pildikaart = "10"
+
+    # Diileri nähtava kaardi asukoht tabelis
+    diilervõimalik = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "A")
+    diiler = "10" if diiler in pildikaart else diiler
+    diilerindeks = diilervõimalik.index(diiler)
+
+    # Paar (2 sama kaarti)
+    if paar and kaardid_pildita[0] == kaardid_pildita[1]:
+        paar = ("A", "10", "9", "8", "7", "6", "5", "4", "3", "2")
+        kaartindeks = paar.index(kaardid_pildita[0])
+        # Diiler:  2     3     4     5     6     7     8     9     10    A
+        tabel = (("SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP"),  # A,A
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 10,10
+                 ("SP", "SP", "SP", "SP", "SP", "S", "SP", "SP", "S", "S"),  # 9,9
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "Usp"),  # 8,8
+                 ("SP", "SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H"),  # 7,7
+                 ("SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H", "H"),  # 6,6
+                 ("Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "H", "H"),  # 5,5
+                 ("H", "H", "H", "SP", "SP", "H", "H", "H", "H", "H"),  # 4,4
+                 ("SP", "SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H"),  # 3,3
+                 ("SP", "SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H"))  # 2,2
+        return tabel[kaartindeks][diilerindeks]
+
+    # "Soft totals" - Pehme väärtus (kaartide seas esineb äss)
+    elif paar and "A" in kaardid_pildita:
+        kaardid_pildita.pop(kaardid_pildita.index("A"))
+        kaart = int(kaardid_pildita[0])
+        teinekaart = tuple(range(10, 1, -1))
+        kaartindeks = teinekaart.index(kaart)
+        # Diiler:  2    3    4    5    6    7    8    9    10   A
+        tabel = (("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # A,10
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # A,9
+                 ("S", "S", "S", "S", "Ds", "S", "S", "S", "S", "S"),  # A,8
+                 ("Ds", "Ds", "Ds", "Ds", "Ds", "S", "S", "H", "H", "H"),  # A,7
+                 ("H", "Ds", "Ds", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,6
+                 ("H", "H", "Ds", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,4-A,5 (A,5)
+                 ("H", "H", "Ds", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,4-A,5 (A,4)
+                 ("H", "H", "H", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,2-A,3 (A,3)
+                 ("H", "H", "H", "Ds", "Ds", "H", "H", "H", "H", "H"))  # A,2-A,3 (A,2)
+        return tabel[kaartindeks][diilerindeks]
+
+    # "Hard totals" - kõik muu, ehk arvestatakse kaartide väärtuse järgi
+    else:
+        väärtused = tuple(range(21, 4, -1))
+        väärtus = int(väärtus)
+        väärtusindeks = väärtused.index(väärtus)
+        # Diiler:  2    3    4    5    6    7    8    9    10   A
+        tabel = (("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 18-21 (21)
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 18-21 (20)
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 18-21 (19)
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 18-21 (18)
+                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "Us"),  # 17
+                 ("S", "S", "S", "S", "S", "H", "H", "Uh", "Uh", "Uh"),  # 16
+                 ("S", "S", "S", "S", "S", "H", "H", "H", "Uh", "Uh"),  # 15
+                 ("S", "S", "S", "S", "S", "H", "H", "H", "H", "H"),  # 13-14 (14)
+                 ("S", "S", "S", "S", "S", "H", "H", "H", "H", "H"),  # 13-14 (13)
+                 ("H", "H", "S", "S", "S", "H", "H", "H", "H", "H"),  # 12
+                 ("Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh"),  # 11
+                 ("Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "H", "H"),  # 10
+                 ("H", "Dh", "Dh", "Dh", "Dh", "H", "H", "H", "H", "H"),  # 9
+                 ("H", "H", "H", "H", "H", "H", "H", "H", "H", "H"),  # 5-8 (8)
+                 ("H", "H", "H", "H", "H", "H", "H", "H", "H", "H"),  # 5-8 (7)
+                 ("H", "H", "H", "H", "H", "H", "H", "H", "H", "H"),  # 5-8 (6)
+                 ("H", "H", "H", "H", "H", "H", "H", "H", "H", "H"))  # 5-8 (5)
+        return tabel[väärtusindeks][diilerindeks]
 
 
 # Mängijate määramine
@@ -52,5 +134,15 @@ MängijaNimed = ["Diiler"] + ["Arvuti" + str(i) for i in range(1, MängijadArv)]
 MängijaNimed.insert(MängijaKoht, "Mängija")
 
 mängijad = {nimi: Mängija(nimi) for nimi in MängijaNimed}
-kaardid = Kaardipakk(4)
 
+# Mäng
+kaardipakk = Kaardipakk(4)  # Uus kaardipakk
+# Diiler
+mängijad["Diiler"].uuskaart(kaardipakk.hit())
+print(kaardipakk.kaart)
+print(mängijad["Diiler"].väärtus)
+mängijad["Diiler"].uuskaart(kaardipakk.hit())
+
+for mängija in MängijaNimed[1:]:
+    mängijad[mängija].uuskaart(kaardipakk.hit(), 2)
+    print(f"{mängija} kaardid on: {mängijad[mängija].kaardid} ning väärtus on {mängijad[mängija].väärtus}")
