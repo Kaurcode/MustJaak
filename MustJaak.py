@@ -36,19 +36,28 @@ class Mängija:
         self.kaardid = []
         self.väärtus = 0
         self.A11 = 0
+        self.kaardidarv = 0
+        self.luba_double = 0
+        self.luba_split = 0
+        self.kaardiväärtus = 0
 
-    def uuskaart(self, kaartväärtus, n=1):
-        while n > 0:
-            kaart, väärtus = kaartväärtus
-            self.kaardid.append(kaart)
-            self.väärtus += väärtus
+    def uuskaart(self, kaartväärtus):
+        kaart, self.kaardiväärtus = kaartväärtus
+        self.kaardid.append(kaart)
+        self.väärtus += self.kaardiväärtus
+        self.kaardidarv += 1
+        self.luba_double = 1 if self.kaardidarv == 2 else 0
+        self.luba_split = 1 if self.kaardidarv == 2 and self.kaardid[0][3:] == self.kaardid[1][3:] else 0
 
-            self.A11 += 1 if kaart[3:] == "A" else 0
-            if self.väärtus > 21 and self.A11 > 0:
-                self.väärtus -= 10
-                self.A11 -= 1
+        self.A11 += 1 if kaart[3:] == "A" else 0
+        if self.väärtus > 21 and self.A11 > 0:
+            self.väärtus -= 10
+            self.A11 -= 1
 
-            n -= 1
+    def split(self):
+        self.väärtus -= self.kaardiväärtus
+        self.kaardidarv -= 1
+        return self.kaardid.pop(), self.kaardiväärtus
 
 
 # Olenevalt kaartidest väljastab funktsioon parima valiku
@@ -138,11 +147,57 @@ mängijad = {nimi: Mängija(nimi) for nimi in MängijaNimed}
 # Mäng
 kaardipakk = Kaardipakk(4)  # Uus kaardipakk
 # Diiler
-mängijad["Diiler"].uuskaart(kaardipakk.hit())
+mängijad["Diiler"].uuskaart(kaardipakk.hit())  # Nähtav kaart
 print(kaardipakk.kaart)
 print(mängijad["Diiler"].väärtus)
-mängijad["Diiler"].uuskaart(kaardipakk.hit())
+mängijad["Diiler"].uuskaart(kaardipakk.hit())  # Peidetud kaart
 
-for mängija in MängijaNimed[1:]:
-    mängijad[mängija].uuskaart(kaardipakk.hit(), 2)
+MängijadArv += 1  # Diiler on ka nimekirjas
+i = 1
+while MängijadArv > i:
+    mängija = MängijaNimed[i]
+    i += 1
+    mängijad[mängija].uuskaart(kaardipakk.hit())
+    # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
+    mängijad[mängija].uuskaart(kaardipakk.hit()) if mängijad[mängija].kaardidarv == 1 else None
     print(f"{mängija} kaardid on: {mängijad[mängija].kaardid} ning väärtus on {mängijad[mängija].väärtus}")
+    ID = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
+
+    # Päris mängija (inimene) teeb ise valikuid
+    if mängija[0:7] == "Mängija":
+        while mängijad[mängija].väärtus <= 21:  # Ei ole "bust"
+            valik = input("Sisesta valik: ")
+            # Uus kaart
+            if valik == "Hit":
+                mängijad[mängija].uuskaart(kaardipakk.hit())
+                print(kaardipakk.kaart)
+            # Ainult üks uus kaart (topelt panus)
+            elif valik == "Double" and mängijad[mängija].luba_double == 1:
+                mängijad[mängija].uuskaart(kaardipakk.hit())
+                print(kaardipakk.kaart)
+                print(f"{mängija} kaardid on: {mängijad[mängija].kaardid} ning väärtus on {mängijad[mängija].väärtus}")
+                break
+            # Ei võta rohkem kaarte
+            elif valik == "Stand":
+                break
+            # Anna alla -> kaotad väiksema panuse
+            elif valik == "Surrender":
+                print("Mängija andis alla")
+                break
+            # Split - võrdse kaardipaari puhul -> mängijal kaks kätt, mõlemal käel eraldi valikud, sama panus
+            elif valik == "Split" and mängijad[mängija].luba_split == 1:
+                nimi = mängija + str(ID)  # Alamkäe nimi
+                ID += 1  # Juhul kui järgmine alamkäsi (uue spliti puhul)
+                # Alamkäsi kui eraldi mängija
+                MängijaNimed.insert(MängijaNimed.index(mängija) + 1, nimi)  # Alamkäsi mängijate nimekirja
+                mängijad[nimi] = Mängija(nimi)  # Alamkäele kutsutakse välja Mängija klass
+                mängijad[nimi].uuskaart(mängijad[mängija].split())  # Üks mängija kaart alammängijale
+                MängijadArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
+                mängijad[mängija].uuskaart(kaardipakk.hit())  # Mängijale üks kaart juurde (kuna ühe andis ära)
+            # Kui ükski valik ei sobi -> vale sisestus
+            else:
+                print("Vale sisestus.", end=" ")
+                continue
+
+            # Kuvab mängija käe (pärast "Hit" või "Split" valikut)
+            print(f"{mängija} kaardid on: {mängijad[mängija].kaardid} ning väärtus on {mängijad[mängija].väärtus}")
