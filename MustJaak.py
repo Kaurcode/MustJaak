@@ -30,34 +30,38 @@ class Kaardipakk:
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
+# Igal mängijal oma käsi(kaardid) ning load, mida ta teha võib
 class Mängija:
     def __init__(self, nimi):
         self.nimi = nimi
-        self.kaardid = []
-        self.väärtus = 0
-        self.A11 = 0
-        self.kaardidarv = 0
-        self.luba_double = 0
-        self.luba_split = 0
-        self.kaardiväärtus = 0
+        self.kaardid = []  # Käesolevad kaardid
+        self.väärtus = 0  # Kaartide väärtus kokku
+        self.A11 = 0  # Mitu ässa on väärtusega 11?
+        self.kaardidarv = 0  # Mitu kaarti käes on? Et ei peaks kasutama len()-i
+        self.luba_double = 0  # Kas mängija võib panust tõsta?
+        self.luba_split = 0  # Kas mängija võib käe "kaheks" teha (split)?
+        self.kaardiväärtus = 0  # Mis on viimati mängijale määratud kaardi väärtus?
 
+    # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
-        kaart, self.kaardiväärtus = kaartväärtus
+        kaart, self.kaardiväärtus = kaartväärtus  # Kaart ise ja selle väärtus
         self.kaardid.append(kaart)
         self.väärtus += self.kaardiväärtus
         self.kaardidarv += 1
-        self.luba_double = 1 if self.kaardidarv == 2 else 0
+        self.luba_double = 1 if self.kaardidarv == 2 else 0  # Lubatakse double, kui on ainult kaks kaarti
+        # Lubatakse split, kui on kaks kaarti, mis on võrdsed
         self.luba_split = 1 if self.kaardidarv == 2 and self.kaardid[0][3:] == self.kaardid[1][3:] else 0
 
+        # Äss saab olla, kas 1 või 11, ehk kui on väärtus üle 21, siis loetakse äss üheks
         self.A11 += 1 if kaart[3:] == "A" else 0
         if self.väärtus > 21 and self.A11 > 0:
             self.väärtus -= 10
-            self.A11 -= 1
+            self.A11 -= 1  # Ässasid, mille väärtus on 11, on nüüd ühe võrra vähem
 
     def split(self):
-        self.väärtus -= self.kaardiväärtus
-        self.kaardidarv -= 1
-        return self.kaardid.pop(), self.kaardiväärtus
+        self.väärtus -= self.kaardiväärtus  # Käe väärtus väheneb eelneva kaardi väärtuse võrra
+        self.kaardidarv -= 1  # Üks kaart vähem
+        return self.kaardid.pop(), self.kaardiväärtus  # Kaart antakse edasi n.ö. alamkäele(eraldi mängija)
 
 
 # Olenevalt kaartidest väljastab funktsioon parima valiku
