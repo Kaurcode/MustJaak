@@ -1,6 +1,6 @@
-
+import tkinter as tk
 from random import shuffle, randint
-
+from PIL import Image, ImageTk
 
 class Kaardipakk:
     # Uus segatud kaardipakk (klassi välja kutsumisel)
@@ -138,6 +138,111 @@ def strateegia(väärtus, kaardid, diiler):
                  ("H", "H", "H", "H", "H", "H", "H", "H", "H", "H"))  # 5-8 (5)
         return tabel[väärtusindeks][diilerindeks]
 
+#GUI
+class MustJaak:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Blackjack")
+        self.root.geometry("800x600")
+        self.mängulaua_loomine()
+
+    def mängulaua_loomine(self):
+        self.diileri_label = tk.Label(self.root, text="Diiler")
+        self.diileri_label.pack(pady=10)
+
+        self.diileri_käsi = tk.Label(self.root, text="")
+        self.diileri_käsi.pack(pady=10)
+
+        self.mängija_label = tk.Label(self.root, text="Mängija")
+        self.mängija_label.pack(pady=10)
+
+        self.mängija_käsi = tk.Label(self.root, text="")
+        self.mängija_käsi.pack(pady=10)
+
+        self.hit_button = tk.Button(self.root, text="Hit", command=self.hit)
+        self.hit_button.pack(side="top", pady=10)
+
+        self.stand_button = tk.Button(self.root, text="Stand", command=self.stand)
+        self.stand_button.pack(side="top", pady=10)
+
+        self.double_button = tk.Button(self.root, text="Double", command=self.double)
+        self.double_button.pack(side="top", pady=10)
+
+        self.surrender_button = tk.Button(self.root, text="Surrender", command=self.surrender)
+        self.surrender_button.pack(side="top", pady=10)
+
+        self.split_button = tk.Button(self.root, text="Split", command=self.split)
+        self.split_button.pack(side="top", pady=10)
+
+        self.mängu_alustamine()
+
+    def mängu_alustamine(self):
+        self.kaardipakk = Kaardipakk(4)
+
+        diileri_käsi, väärtus = self.kaardipakk.hit()
+        self.diileri_käsi["text"] = f'Diiler: {diileri_käsi}'
+        self.diileri_väärtus = väärtus
+
+        mängija_käsi, väärtus = self.kaardipakk.hit()
+        self.mängija_käsi["text"] = f'Mängija: {mängija_käsi}'
+        self.mängija_väärtus = väärtus
+
+
+    def hit(self):
+        # Logic for "Hit" button
+        if self.mängija_väärtus <= 21:
+            mängija_käsi, väärtus = self.kaardipakk.hit()
+            self.mängija_käsi["text"] += f' {mängija_käsi}'
+            self.mängija_väärtus += väärtus
+
+            # Check if player busts
+            if self.mängija_väärtus > 21:
+                self.mängija_käsi["text"] += " (Bust)"
+                self.end_round()
+
+    def stand(self):
+        # Logic for "Stand" button
+        self.diileri_käsi["text"] = f"Diiler: {self.diileri_kaardid} (Väärtus: {self.diileri_väärtus})"
+        self.resolve_round()
+
+    def double(self):
+        # Logic for "Double" button
+        if self.mängija_väärtus <= 21 and self.mängija_käsi.cget("text") != "Double":
+            mängija_käsi, väärtus = self.kaardipakk.hit()
+            self.mängija_käsi["text"] += f' {mängija_käsi}'
+            self.mängija_väärtus += väärtus
+            self.stand()
+
+    def surrender(self):
+        # Logic for "Surrender" button
+        if self.mängija_väärtus <= 21 and self.mängija_käsi.cget("text") != "Surrender":
+            self.mängija_käsi["text"] += " (Andis alla)"
+            self.end_round()
+
+    def split(self):
+        pass
+
+    def resolve_round(self):
+        # Player has stood, simulate computer's moves
+        while self.diileri_väärtus < 17:  # Simulate hitting until the value is 17 or more
+            diileri_käsi, väärtus = self.kaardipakk.hit()
+            self.diileri_kaardid.append(diileri_käsi)
+            self.diileri_käsi["text"] += f' {diileri_käsi}'
+            self.diileri_väärtus += väärtus
+
+        # Check the result and declare the winner
+        if self.diileri_väärtus > 21 or (self.mängija_väärtus <= 21 and self.mängija_väärtus > self.diileri_väärtus):
+            self.diileri_käsi["text"] += f" (Bust)"
+            self.mängija_käsi["text"] += " (Võitja)"
+        elif self.mängija_väärtus == self.diileri_väärtus:
+            self.diileri_käsi["text"] += f" (Viik)"
+            self.mängija_käsi["text"] += " (Viik)"
+        else:
+            self.mängija_käsi["text"] += " (Kaotus)"
+
+root = tk.Tk()
+app = MustJaak(root)
+root.mainloop()
 
 # Mängijate määramine
 MängijadArv = 4  # Mitu mängijat mängu mängib
