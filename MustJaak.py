@@ -172,14 +172,15 @@ class MustJaak:
         self.MängijaNimed = None
         self.mängijad = None
         self.diiler = None
+        self.aken = None
 
         # Mängusätete määramine
         self.MängijadArv = 7  # Mitu mängijat mängu mängib
         self.MängijaKoht = 1  # Mitmes koht on pärismängijal
         self.Kaardipakke = 4
         self.mängusätted()
-        self.mängu_alustamine()
-        self.mäng()
+
+        self.root.mainloop()
 
     def mängusätted(self):
         def edasi():
@@ -187,23 +188,25 @@ class MustJaak:
             self.MängijaKoht = MängijaKohtValik.get() - 1
             self.Kaardipakke = KaardipakkeValik.get()
 
-            self.root.destroy()
+            self.mängu_alustamine()
 
-        MängijadArvPealkiri = tk.Label(self.root, text="Mängijate arv:")
-        MängijaKohtPealkiri = tk.Label(self.root, text="Mängija koht:")
-        KaardipakkePealkiri = tk.Label(self.root, text="Kaardipakke:")
+        self.aken = tk.Frame(self.root)
+
+        MängijadArvPealkiri = tk.Label(self.aken, text="Mängijate arv:")
+        MängijaKohtPealkiri = tk.Label(self.aken, text="Mängija koht:")
+        KaardipakkePealkiri = tk.Label(self.aken, text="Kaardipakke:")
 
         MängijadArvValikud = list(range(2, 8))
         MängijadArvValik = tk.IntVar(value=7)
-        MängijadArvMenüü = tk.OptionMenu(self.root, MängijadArvValik, *MängijadArvValikud)
+        MängijadArvMenüü = tk.OptionMenu(self.aken, MängijadArvValik, *MängijadArvValikud)
 
         MängijaKohtValikud = list(range(1, int(MängijadArvValik.get()) + 1))
         MängijaKohtValik = tk.IntVar(value=1)
-        MängijaKohtMenüü = tk.OptionMenu(self.root, MängijaKohtValik, *MängijaKohtValikud)
+        MängijaKohtMenüü = tk.OptionMenu(self.aken, MängijaKohtValik, *MängijaKohtValikud)
 
         KaardipakkeValikud = list(range(1, 9))
         KaardipakkeValik = tk.IntVar(value=8)
-        KaardipakkeMenüü = tk.OptionMenu(self.root, KaardipakkeValik, *KaardipakkeValikud)
+        KaardipakkeMenüü = tk.OptionMenu(self.aken, KaardipakkeValik, *KaardipakkeValikud)
 
         MängijadArvPealkiri.pack()
         MängijadArvMenüü.pack()
@@ -214,40 +217,10 @@ class MustJaak:
         KaardipakkePealkiri.pack()
         KaardipakkeMenüü.pack()
 
-        ValikNupp = tk.Button(self.root, text="Edasi", command=edasi)
+        ValikNupp = tk.Button(self.aken, text="Edasi", command=edasi)
         ValikNupp.pack()
 
-        self.root.mainloop()
-
-    def mängulaua_loomine(self):
-        self.diileri_label = tk.Label(self.root, text="Diiler")
-        self.diileri_label.pack(pady=10)
-
-        self.diileri_käsi = tk.Label(self.root, text="")
-        self.diileri_käsi.pack(pady=10)
-
-        self.mängija_label = tk.Label(self.root, text="Mängija")
-        self.mängija_label.pack(pady=10)
-
-        self.mängija_käsi = tk.Label(self.root, text="")
-        self.mängija_käsi.pack(pady=10)
-
-        self.hit_button = tk.Button(self.root, text="Hit", command=self.hit)
-        self.hit_button.pack(side="top", pady=10)
-
-        self.stand_button = tk.Button(self.root, text="Stand", command=self.stand)
-        self.stand_button.pack(side="top", pady=10)
-
-        self.double_button = tk.Button(self.root, text="Double", command=self.double)
-        self.double_button.pack(side="top", pady=10)
-
-        self.surrender_button = tk.Button(self.root, text="Surrender", command=self.surrender)
-        self.surrender_button.pack(side="top", pady=10)
-
-        self.split_button = tk.Button(self.root, text="Split", command=self.split)
-        self.split_button.pack(side="top", pady=10)
-
-        self.mängu_alustamine()
+        self.aken.pack()
 
     def mängu_alustamine(self):
         self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
@@ -263,18 +236,66 @@ class MustJaak:
         # self.diileri_käsi["text"] = f'Diiler: {self.diiler.kaart}'
         self.diiler.uuskaart(self.kaardipakk.hit())  # Peidetud kaart
 
+        self.mäng()
+
+    def mängulaud(self):
+        self.aken.destroy()
+        self.aken = tk.Frame(self.root)
+
+        keskel = (self.MängijadArv - 1) // 2
+
+        diiler_pealkiri = tk.Label(self.aken, text=self.diiler.nimi)
+        diiler_pealkiri.grid(row=0, column=keskel, padx=5, pady=5)
+
+        diileri_käsi = tk.Label(self.aken, text=self.diiler.kaardid[0])
+        diileri_käsi.grid(row=1, column=keskel, padx=5, pady=5)
+
+        for i in range(self.MängijadArv):
+            mängija = self.mängijad[self.MängijaNimed[i]]
+            self.aken.columnconfigure(i, weight=1)
+
+            mängija_pealkiri = tk.Label(self.aken, text=mängija.nimi)
+            mängija_pealkiri.grid(row=2, column=i, padx=5, pady=5)
+
+            mängija_käsi = tk.Label(self.aken, text=mängija.kaardid)
+            mängija_käsi.grid(row=3, column=i, padx=5, pady=5)
+
+        self.aken.pack()
+        self.root.update()
+
+        # self.mängija_käsi = tk.Label(self.root, text="")
+        # self.mängija_käsi.pack(pady=10)
+        #
+        # self.hit_button = tk.Button(self.root, text="Hit", command=self.hit)
+        # self.hit_button.pack(side="top", pady=10)
+        #
+        # self.stand_button = tk.Button(self.root, text="Stand", command=self.stand)
+        # self.stand_button.pack(side="top", pady=10)
+        #
+        # self.double_button = tk.Button(self.root, text="Double", command=self.double)
+        # self.double_button.pack(side="top", pady=10)
+        #
+        # self.surrender_button = tk.Button(self.root, text="Surrender", command=self.surrender)
+        # self.surrender_button.pack(side="top", pady=10)
+        #
+        # self.split_button = tk.Button(self.root, text="Split", command=self.split)
+        # self.split_button.pack(side="top", pady=10)
+
     def mäng(self):
         i = 0
         while self.MängijadArv > i:
             mängija = self.mängijad[self.MängijaNimed[i]]
             i += 1
             mängija.uuskaart(self.kaardipakk.hit())
+            self.mängulaud()
+            sleep(1)
             # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
             mängija.uuskaart(self.kaardipakk.hit()) if mängija.kaardidarv == 1 else None
             print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             ID = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
 
             while mängija.väärtus <= 21:  # Ei ole "bust"
+                self.mängulaud()
                 # Päris mängija (inimene) teeb ise valikuid
                 if mängija.nimi[0:7] == "Mängija":
                     valik = input("Sisesta valik: ")
@@ -306,7 +327,7 @@ class MustJaak:
                     ID += 1  # Juhul kui järgmine alamkäsi (uue spliti puhul)
 
                     # Alamkäsi kui eraldi mängija
-                    self.MängijaNimed.insert(self.MängijaNimed.index(mängija) + 1, uus_nimi)  # Alamkäsi mängijate nimekirja
+                    self.MängijaNimed.insert(self.MängijaNimed.index(mängija.nimi) + 1, uus_nimi)  # Alamkäsi mängijate nimekirja
                     self.mängijad[uus_nimi] = Mängija(uus_nimi)  # Alamkäele kutsutakse välja Mängija klass
                     uus_mängija = self.mängijad[uus_nimi]
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
