@@ -210,8 +210,11 @@ class MustJaak:
 
             self.MängijadArv = len(self.mängijad)
             self.KäedArv = self.MängijadArv
+
             self.Kaardipakke = kaardipakid_arv_valik.get()
-            self.mängu_alustamine()
+            self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
+
+            self.mäng()
 
         self.aken = tk.Frame(self.root)
 
@@ -251,16 +254,6 @@ class MustJaak:
         valitud_nupp.pack()
 
         self.aken.pack()
-
-    def mängu_alustamine(self):
-        self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
-
-        self.diiler = Mängija("Diiler")
-        self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
-        print(self.kaardipakk.kaart)
-        print(self.diiler.väärtus)
-
-        self.mäng()
 
     def nupud(self):
         def mängijavalik(valik):
@@ -313,10 +306,13 @@ class MustJaak:
         self.aken = tk.Frame(self.root)
 
         diiler_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKnimi)
-        diiler_pealkiri.pack(pady=10)
+        diiler_pealkiri.pack(pady=5)
 
         diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
-        diileri_käsi.pack(pady=10)
+        diileri_käsi.pack(pady=5)
+
+        väärtus_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKväärtus)
+        väärtus_pealkiri.pack(pady=5)
 
         mängijad_aken = tk.Frame(self.aken)
 
@@ -346,6 +342,9 @@ class MustJaak:
         self.aken.pack()
 
     def mäng(self):
+        self.diiler = Mängija("Diiler")
+        self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
+        print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
         self.mängulaud()
         i = 0
         while self.KäedArv > i:
@@ -413,6 +412,15 @@ class MustJaak:
                 self.root.update()
             sleep(1)
             self.root.update()
+
+        self.diiler.uuskaart(self.kaardipakk.hit())
+        print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+        self.root.update()
+        while self.diiler.väärtus < 17 or self.diiler.väärtus == 17 and self.diiler.A11 > 0:
+            sleep(1)
+            self.diiler.uuskaart(self.kaardipakk.hit())
+            self.root.update()
+            print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
 
 
 mäng = MustJaak(tk.Tk())
