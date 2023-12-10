@@ -153,7 +153,7 @@ def strateegia(mängija, diiler):
         return "Double" if mängija.luba_double == 1 else "Stand"
     elif valik == "Uh":
         return "Surrender" if mängija.luba_surr == 1 else "Hit"
-    elif valik == "Uh":
+    elif valik == "Us":
         return "Surrender" if mängija.luba_surr == 1 else "Stand"
     elif valik == "Usp":
         return "Surrender" if mängija.luba_surr == 1 else "Split"
@@ -239,49 +239,58 @@ class MustJaak:
         self.mäng()
 
     def mängulaud(self):
-        self.aken.destroy()
-        self.aken = tk.Frame(self.root)
+        uusaken = tk.Frame(self.root)
 
-        keskel = (self.MängijadArv - 1) // 2
+        diiler_pealkiri = tk.Label(uusaken, text=self.diiler.nimi)
+        diiler_pealkiri.pack(pady=10)
 
-        diiler_pealkiri = tk.Label(self.aken, text=self.diiler.nimi)
-        diiler_pealkiri.grid(row=0, column=keskel, padx=5, pady=5)
+        diileri_käsi = tk.Label(uusaken, text=self.diiler.kaardid[0])
+        diileri_käsi.pack(pady=10)
 
-        diileri_käsi = tk.Label(self.aken, text=self.diiler.kaardid[0])
-        diileri_käsi.grid(row=1, column=keskel, padx=5, pady=5)
+        mängijad = tk.Frame(uusaken)
 
         for i in range(self.MängijadArv):
             mängija = self.mängijad[self.MängijaNimed[i]]
-            self.aken.columnconfigure(i, weight=1)
+            uusaken.columnconfigure(i, weight=1)
 
-            mängija_pealkiri = tk.Label(self.aken, text=mängija.nimi)
-            mängija_pealkiri.grid(row=2, column=i, padx=5, pady=5)
+            mängija_pealkiri = tk.Label(mängijad, text=mängija.nimi)
+            mängija_pealkiri.grid(row=0, column=i, padx=5, pady=5)
 
-            mängija_käsi = tk.Label(self.aken, text=mängija.kaardid)
-            mängija_käsi.grid(row=3, column=i, padx=5, pady=5)
+            mängija_käsi = tk.Label(mängijad, text=mängija.kaardid)
+            mängija_käsi.grid(row=1, column=i, padx=5, pady=5)
 
+            väärtus_pealkiri = tk.Label(mängijad, text="Väärtus:\n\n" + str(mängija.väärtus))
+            väärtus_pealkiri.grid(row=2, column=i, padx=5, pady=5)
+
+        mängijad.pack(pady=10)
+
+        nupud = tk.Frame(uusaken)
+
+        hit_button = tk.Button(nupud, text="Hit")
+        hit_button.grid(row=0, column=0, padx=5, pady=5)
+
+        stand_button = tk.Button(nupud, text="Stand")
+        stand_button.grid(row=0, column=1, padx=5, pady=5)
+
+        double_button = tk.Button(nupud, text="Double")
+        double_button.grid(row=0, column=2, padx=5, pady=5)
+
+        surrender_button = tk.Button(nupud, text="Surrender")
+        surrender_button.grid(row=0, column=3, padx=5, pady=5)
+
+        split_button = tk.Button(nupud, text="Split")
+        split_button.grid(row=0, column=4, padx=5, pady=5)
+
+        nupud.pack(pady=10)
+
+        self.aken.destroy()
+        self.aken = uusaken
+        del uusaken
         self.aken.pack()
         self.root.update()
 
-        # self.mängija_käsi = tk.Label(self.root, text="")
-        # self.mängija_käsi.pack(pady=10)
-        #
-        # self.hit_button = tk.Button(self.root, text="Hit", command=self.hit)
-        # self.hit_button.pack(side="top", pady=10)
-        #
-        # self.stand_button = tk.Button(self.root, text="Stand", command=self.stand)
-        # self.stand_button.pack(side="top", pady=10)
-        #
-        # self.double_button = tk.Button(self.root, text="Double", command=self.double)
-        # self.double_button.pack(side="top", pady=10)
-        #
-        # self.surrender_button = tk.Button(self.root, text="Surrender", command=self.surrender)
-        # self.surrender_button.pack(side="top", pady=10)
-        #
-        # self.split_button = tk.Button(self.root, text="Split", command=self.split)
-        # self.split_button.pack(side="top", pady=10)
-
     def mäng(self):
+        self.mängulaud()
         i = 0
         while self.MängijadArv > i:
             mängija = self.mängijad[self.MängijaNimed[i]]
@@ -291,11 +300,10 @@ class MustJaak:
             sleep(1)
             # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
             mängija.uuskaart(self.kaardipakk.hit()) if mängija.kaardidarv == 1 else None
+            self.mängulaud()
             print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             ID = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
-
             while mängija.väärtus <= 21:  # Ei ole "bust"
-                self.mängulaud()
                 # Päris mängija (inimene) teeb ise valikuid
                 if mängija.nimi[0:7] == "Mängija":
                     valik = input("Sisesta valik: ")
@@ -313,6 +321,7 @@ class MustJaak:
                     mängija.uuskaart(self.kaardipakk.hit())
                     print(self.kaardipakk.kaart)
                     print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
+                    self.mängulaud()
                     break
                 # Ei võta rohkem kaarte
                 elif valik == "Stand":
@@ -340,58 +349,8 @@ class MustJaak:
 
                 # Kuvab mängija käe (pärast "Hit" või "Split" valikut)
                 print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
-
-    def hit(self):
-        # Logic for "Hit" button
-        if self.mängija_väärtus <= 21:
-            mängija_käsi, väärtus = self.kaardipakk.hit()
-            self.mängija_käsi["text"] += f' {mängija_käsi}'
-            self.mängija_väärtus += väärtus
-
-            # Check if player busts
-            if self.mängija_väärtus > 21:
-                self.mängija_käsi["text"] += " (Bust)"
-                self.end_round()
-
-    def stand(self):
-        # Logic for "Stand" button
-        self.diileri_käsi["text"] = f"Diiler: {self.diileri_kaardid} (Väärtus: {self.diileri_väärtus})"
-        self.resolve_round()
-
-    def double(self):
-        # Logic for "Double" button
-        if self.mängija_väärtus <= 21 and self.mängija_käsi.cget("text") != "Double":
-            mängija_käsi, väärtus = self.kaardipakk.hit()
-            self.mängija_käsi["text"] += f' {mängija_käsi}'
-            self.mängija_väärtus += väärtus
-            self.stand()
-
-    def surrender(self):
-        # Logic for "Surrender" button
-        if self.mängija_väärtus <= 21 and self.mängija_käsi.cget("text") != "Surrender":
-            self.mängija_käsi["text"] += " (Andis alla)"
-            self.end_round()
-
-    def split(self):
-        pass
-
-    def resolve_round(self):
-        # Player has stood, simulate computer's moves
-        while self.diileri_väärtus < 17:  # Simulate hitting until the value is 17 or more
-            diileri_käsi, väärtus = self.kaardipakk.hit()
-            self.diileri_kaardid.append(diileri_käsi)
-            self.diileri_käsi["text"] += f' {diileri_käsi}'
-            self.diileri_väärtus += väärtus
-
-        # Check the result and declare the winner
-        if self.diileri_väärtus > 21 or (self.mängija_väärtus <= 21 and self.mängija_väärtus > self.diileri_väärtus):
-            self.diileri_käsi["text"] += f" (Bust)"
-            self.mängija_käsi["text"] += " (Võitja)"
-        elif self.mängija_väärtus == self.diileri_väärtus:
-            self.diileri_käsi["text"] += f" (Viik)"
-            self.mängija_käsi["text"] += " (Viik)"
-        else:
-            self.mängija_käsi["text"] += " (Kaotus)"
+                self.mängulaud()
+            sleep(1)
 
 
 mäng = MustJaak(tk.Tk())
