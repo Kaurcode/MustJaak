@@ -206,7 +206,6 @@ class MustJaak:
             self.MängijaKoht = mängija_koht_valik.get() - 1
             self.Kaardipakke = kaardipakid_arv_valik.get()
 
-            self.aken.destroy()
             self.mängu_alustamine()
 
         self.aken = tk.Frame(self.root)
@@ -252,8 +251,6 @@ class MustJaak:
         self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
         print(self.kaardipakk.kaart)
         print(self.diiler.väärtus)
-        # self.diileri_käsi["text"] = f'Diiler: {self.diiler.kaart}'
-        self.diiler.uuskaart(self.kaardipakk.hit())  # Peidetud kaart
 
         self.mäng()
 
@@ -304,12 +301,13 @@ class MustJaak:
         return self.langetatud_valik
 
     def mängulaud(self):
+        self.aken.destroy()
         self.aken = tk.Frame(self.root)
 
-        diiler_pealkiri = tk.Label(self.aken, text=self.diiler.nimi)
+        diiler_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKnimi)
         diiler_pealkiri.pack(pady=10)
 
-        diileri_käsi = tk.Label(self.aken, text=self.diiler.kaardid[0])
+        diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         diileri_käsi.pack(pady=10)
 
         mängijad = tk.Frame(self.aken)
@@ -382,9 +380,11 @@ class MustJaak:
                     # Alamkäsi mängijate nimekirja
                     self.MängijaNimed.insert(self.MängijaNimed.index(mängija.nimi) + 1, uus_nimi)
                     self.mängijad[uus_nimi] = Mängija(uus_nimi)  # Alamkäele kutsutakse välja Mängija klass
+                    self.MängijadArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
+                    self.mängulaud()
+
                     uus_mängija = self.mängijad[uus_nimi]
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
-                    self.MängijadArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
                     mängija.uuskaart(self.kaardipakk.hit())  # Mängijale üks kaart juurde (kuna ühe andis ära)
                 # Kui ükski valik ei sobi -> vale sisestus
                 else:
