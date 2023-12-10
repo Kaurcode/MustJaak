@@ -10,9 +10,9 @@ class Kaardipakk:
         self.kaart = None
 
         # Loob kaardid ühe kaardipaki jaoks
-        mastid = ("Ruu", "Ärt", "Pot", "Ris")
+        mastid = ("Ruutu", "Ärtu", "Poti", "Risti")
         ühikud = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A")
-        üks_pakk = [mast + ühik for mast in mastid for ühik in ühikud]
+        üks_pakk = [mast + " " + ühik for mast in mastid for ühik in ühikud]
 
         # Määrab igale kaardile väärtuse
         väärtused = (2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11) * 4  # 4 erinevat masti, 10, J, Q, K sama väärtusega
@@ -51,10 +51,11 @@ class Mängija:
 
         self.luba_double = 0  # Kas mängija võib panust tõsta?
         self.luba_split = 0  # Kas mängija võib käe "kaheks" teha (split)?
-        self.luba_surr = 0
+        self.luba_surr = 1
 
         self.kaart = None  # Mis on viimati mängijale määratud kaart?
         self.kaardiväärtus = None  # Mis on viimati mängijale määratud kaardi väärtus?
+        self.tiitel = None  # Mis on viimati mängijale määratud kaardi tiitel?
 
     # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
@@ -62,25 +63,30 @@ class Mängija:
 
         self.kaardid.append(self.kaart)
         self.väärtus += self.kaardiväärtus
+        self.tiitel = self.kaart.split()[1]
 
         self.kaardidarv += 1
         self.luba_double = 1 if self.kaardidarv == 2 else 0  # Lubatakse double, kui on ainult kaks kaarti
         # Lubatakse split, kui on kaks kaarti, mis on võrdsed
-        self.luba_split = 1 if self.kaardidarv == 2 and self.kaardid[0][3:] == self.kaardid[1][3:] else 0
+        self.luba_split = 1 if self.kaardidarv == 2 and self.kaardid[0].split()[1] == self.kaardid[1].split()[1] else 0
 
         # Äss saab olla, kas 1 või 11, ehk kui on väärtus üle 21, siis loetakse äss üheks
-        self.A11 += 1 if self.kaart[3:] == "A" else 0
+        self.A11 += 1 if self.tiitel == "A" else 0
         if self.väärtus > 21 and self.A11 > 0:
             self.väärtus -= 10
             self.A11 -= 1  # Ässasid, mille väärtus on 11, on nüüd ühe võrra vähem
 
-        self.TKkaardid.set(", ".join(self.kaardid))
+        self.TKkaardid.set("\n".join(self.kaardid))
         self.TKväärtus.set(self.väärtus)
 
     def split(self):
         self.väärtus -= self.kaardiväärtus  # Käe väärtus väheneb eelneva kaardi väärtuse võrra
+        self.TKväärtus.set(self.väärtus)
         self.kaardidarv -= 1  # Üks kaart vähem
-        return self.kaardid.pop(), self.kaardiväärtus  # Kaart antakse edasi n.ö. alamkäele(eraldi mängija)
+        self.A11 += 1 if self.tiitel == "A" else 0
+        väljuv_kaart = self.kaardid.pop()
+        self.TKkaardid.set("\n".join(self.kaardid))
+        return väljuv_kaart, self.kaardiväärtus  # Kaart antakse edasi n.ö. alamkäele(eraldi mängija)
 
 
 # Olenevalt kaartidest väljastab funktsioon parima valiku
@@ -93,11 +99,11 @@ def strateegia(mängija, diiler):
 
     paar = mängija.kaardidarv == 2  # Kas on kaks kaarti?
     pildikaart = ("J", "Q", "K")
-    kaardid_pildita = ["10" if kaart[3:] in pildikaart else kaart[3:] for kaart in kaardid]  # Pildikaart = "10"
+    kaardid_pildita = ["10" if kaart.split()[1] in pildikaart else kaart.split()[1] for kaart in kaardid]  # Pildikaart = "10"
 
     # Diileri nähtava kaardi asukoht tabelis
     diilervõimalik = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "A")
-    diilerkaart = diiler.kaardid[0][3:]
+    diilerkaart = diiler.kaardid[0].split()[1]
     diilerkaart = "10" if diilerkaart in pildikaart else diilerkaart
     diilerindeks = diilervõimalik.index(diilerkaart)
 
@@ -109,7 +115,7 @@ def strateegia(mängija, diiler):
         tabel = (("SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP"),  # A,A
                  ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # 10,10
                  ("SP", "SP", "SP", "SP", "SP", "S", "SP", "SP", "S", "S"),  # 9,9
-                 ("S", "S", "S", "S", "S", "S", "S", "S", "S", "Usp"),  # 8,8
+                 ("SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "SP", "Usp"),  # 8,8
                  ("SP", "SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H"),  # 7,7
                  ("SP", "SP", "SP", "SP", "SP", "H", "H", "H", "H", "H"),  # 6,6
                  ("Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "Dh", "H", "H"),  # 5,5
@@ -119,11 +125,10 @@ def strateegia(mängija, diiler):
         valik = tabel[kaartindeks][diilerindeks]
 
     # "Soft totals" - Pehme väärtus (kaartide seas esineb äss)
-    elif paar and "A" in kaardid_pildita:
-        kaardid_pildita.pop(kaardid_pildita.index("A"))
-        kaart = int(kaardid_pildita[0])
-        teinekaart = tuple(range(10, 1, -1))
-        kaartindeks = teinekaart.index(kaart)
+    elif mängija.A11:
+        muu_väärtus = mängija.väärtus - 11
+        muud_väärtused = tuple(range(10, 1, -1))
+        väärtusindeks = muud_väärtused.index(muu_väärtus)
         # Diiler:  2    3    4    5    6    7    8    9    10   A
         tabel = (("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # A,10
                  ("S", "S", "S", "S", "S", "S", "S", "S", "S", "S"),  # A,9
@@ -134,7 +139,7 @@ def strateegia(mängija, diiler):
                  ("H", "H", "Ds", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,4-A,5 (A,4)
                  ("H", "H", "H", "Ds", "Ds", "H", "H", "H", "H", "H"),  # A,2-A,3 (A,3)
                  ("H", "H", "H", "Ds", "Ds", "H", "H", "H", "H", "H"))  # A,2-A,3 (A,2)
-        valik = tabel[kaartindeks][diilerindeks]
+        valik = tabel[väärtusindeks][diilerindeks]
 
     # "Hard totals" - kõik muu, ehk arvestatakse kaartide väärtuse järgi
     else:
@@ -397,7 +402,7 @@ class MustJaak:
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
 
                     uus_mängija = self.käed[i]
-                    self.mängijad[mängija.nimi].append(uus_mängija)
+                    self.mängijad[mängija.nimi].insert(self.mängijad[mängija.nimi].index(mängija) + 1, uus_mängija)
 
                     self.mängulaud()
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
