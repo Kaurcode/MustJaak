@@ -184,6 +184,7 @@ class MustJaak:
 
         self.kaardipakk = None
         self.mängijad = None
+        self.käed = None
         self.diiler = None
         self.aken = None
         self.langetatud_valik = None
@@ -204,7 +205,8 @@ class MustJaak:
 
     def mängusätted(self):
         def edasi():
-            self.mängijad = [Mängija(mängija["nimi"].get(), mängija["inimene"].get()) for mängija in p_valikud.values() if mängija["olek"].get() == 1]
+            self.käed = [Mängija(mängija["nimi"].get(), mängija["inimene"].get()) for mängija in p_valikud.values() if mängija["olek"].get() == 1]
+            self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
 
             self.MängijadArv = len(self.mängijad)
             self.KäedArv = self.MängijadArv
@@ -316,22 +318,30 @@ class MustJaak:
         diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         diileri_käsi.pack(pady=10)
 
-        mängijad = tk.Frame(self.aken)
+        mängijad_aken = tk.Frame(self.aken)
 
-        for i in range(self.KäedArv):
-            mängija = self.mängijad[i]
+        for mängija, i in zip(self.mängijad, range(self.MängijadArv)):
             self.aken.columnconfigure(i, weight=1)
 
-            mängija_pealkiri = tk.Label(mängijad, textvariable=mängija.TKnimi)
+            mängija_pealkiri = tk.Label(mängijad_aken, text=mängija)
             mängija_pealkiri.grid(row=0, column=i, padx=5, pady=5)
 
-            mängija_käsi = tk.Label(mängijad, textvariable=mängija.TKkaardid)
-            mängija_käsi.grid(row=1, column=i, padx=5, pady=5)
+            käed = self.mängijad[mängija]
+            käed_aken = tk.Frame(mängijad_aken)
 
-            väärtus_pealkiri = tk.Label(mängijad, textvariable=mängija.TKväärtus)
-            väärtus_pealkiri.grid(row=2, column=i, padx=5, pady=5)
+            for j, käsi in enumerate(käed):
+                käsi_pealkiri = tk.Label(käed_aken, text=f"Käsi #{j+1}:")
+                käsi_pealkiri.grid(row=0, column=j, padx=5, pady=5)
 
-        mängijad.pack(pady=10)
+                mängija_käsi = tk.Label(käed_aken, textvariable=käsi.TKkaardid)
+                mängija_käsi.grid(row=1, column=j, padx=5, pady=5)
+
+                väärtus_pealkiri = tk.Label(käed_aken, textvariable=käsi.TKväärtus)
+                väärtus_pealkiri.grid(row=2, column=j, padx=5, pady=5)
+
+            käed_aken.grid(row=1, column=i)
+
+        mängijad_aken.pack(pady=10)
         self.nupud()
         self.aken.pack()
 
@@ -339,7 +349,7 @@ class MustJaak:
         self.mängulaud()
         i = 0
         while self.KäedArv > i:
-            mängija = self.mängijad[i]
+            mängija = self.käed[i]
             i += 1
             mängija.uuskaart(self.kaardipakk.hit())
             self.root.update()
@@ -348,7 +358,7 @@ class MustJaak:
             mängija.uuskaart(self.kaardipakk.hit()) if mängija.kaardidarv == 1 else None
             self.root.update()
             print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
-            nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
+            # nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
             while mängija.väärtus <= 21:  # Ei ole "bust"
                 # Päris mängija (inimene) teeb ise valikuid
                 if mängija.inimene:
@@ -378,17 +388,19 @@ class MustJaak:
                     break
                 # Split - võrdse kaardipaari puhul -> mängijal kaks kätt, mõlemal käel eraldi valikud, sama panus
                 elif valik == "Split" and mängija.luba_split == 1:
-                    uus_nimi = mängija.nimi + str(nr)  # Alamkäe nimi
-                    nr += 1  # Juhul kui järgmine alamkäsi (uue spliti puhul)
+                    # uus_nimi = mängija.nimi + str(nr)  # Alamkäe nimi
+                    # nr += 1  # Juhul kui järgmine alamkäsi (uue spliti puhul)
 
                     # Alamkäsi kui eraldi mängija
 
                     # Alamkäsi mängijate nimekirja
-                    self.mängijad.insert(i, Mängija(uus_nimi, mängija.arvuti, mängija))  # Alamkäele kutsutakse välja Mängija klass
+                    self.käed.insert(i, Mängija(mängija.nimi, mängija.inimene, mängija))  # Alamkäele kutsutakse välja Mängija klass
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
-                    self.mängulaud()
 
-                    uus_mängija = self.mängijad[i]
+                    uus_mängija = self.käed[i]
+                    self.mängijad[mängija.nimi].append(uus_mängija)
+
+                    self.mängulaud()
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
                     mängija.uuskaart(self.kaardipakk.hit())  # Mängijale üks kaart juurde (kuna ühe andis ära)
                 # Kui ükski valik ei sobi -> vale sisestus
