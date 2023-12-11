@@ -394,20 +394,23 @@ class MustJaak:
     def mäng(self):
         self.diiler = Mängija("Diiler", self.kaardipakk)
         self.mängulaud()
-        self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
-        print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+        i = 0
+        while self.KäedArv * 2 > i:
+            mängija = self.käed[i % self.KäedArv]
+            mängija.uuskaart(self.kaardipakk.hit())
+            print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
+            self.root.update()
+            sleep(0.5)
+            i += 1
+            if i == self.KäedArv:
+                self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
+                self.root.update()
+                print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+                sleep(0.5)
         i = 0
         while self.KäedArv > i:
             mängija = self.käed[i]
             i += 1
-            if mängija.kaardidarv == 0:
-                mängija.uuskaart(self.kaardipakk.hit())
-                self.root.update()
-                sleep(1)
-                # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
-                mängija.uuskaart(self.kaardipakk.hit())
-            self.root.update()
-            print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             # nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
             while mängija.väärtus <= 21:  # Ei ole "bust"
                 # Päris mängija (inimene) teeb ise valikuid
@@ -417,7 +420,6 @@ class MustJaak:
                     sleep(1)
                     valik = strateegia(mängija, self.diiler)
                     print(valik)
-                    sleep(1)
                 # Uus kaart
                 if valik == "Hit":
                     mängija.uuskaart(self.kaardipakk.hit())
@@ -438,11 +440,7 @@ class MustJaak:
                     break
                 # Split - võrdse kaardipaari puhul -> mängijal kaks kätt, mõlemal käel eraldi valikud, sama panus
                 elif valik == "Split" and mängija.luba_split == 1:
-                    # uus_nimi = mängija.nimi + str(nr)  # Alamkäe nimi
-                    # nr += 1  # Juhul kui järgmine alamkäsi (uue spliti puhul)
-
                     # Alamkäsi kui eraldi mängija
-
                     # Alamkäsi mängijate nimekirja
                     # Alamkäele kutsutakse välja Mängija klass
                     self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, mängija))
@@ -454,28 +452,24 @@ class MustJaak:
                     self.mängulaud()
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
                     self.root.update()
-                    sleep(1)
+                    sleep(0.5)
                     mängija.uuskaart(self.kaardipakk.hit())  # Mängijale üks kaart juurde (kuna ühe andis ära)
                     self.root.update()
-                    sleep(1)
+                    sleep(0.5)
                     uus_mängija.uuskaart(self.kaardipakk.hit())
-                    self.root.update()
                 # Kui ükski valik ei sobi -> vale sisestus
                 else:
                     print("Vale sisestus.", end=" ")
                     continue
-
                 # Kuvab mängija käe (pärast "Hit" või "Split" valikut)
                 print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
                 self.root.update()
-            sleep(1)
-            self.root.update()
 
         self.diiler.uuskaart(self.kaardipakk.hit())
         print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
         self.root.update()
         while self.diiler.väärtus < 17 or self.diiler.väärtus == 17 and self.diiler.A11 > 0:
-            sleep(1)
+            sleep(0.5)
             self.diiler.uuskaart(self.kaardipakk.hit())
             self.root.update()
             print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
