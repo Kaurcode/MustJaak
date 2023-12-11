@@ -125,7 +125,8 @@ def strateegia(mängija, diiler):
 
     paar = mängija.kaardidarv == 2  # Kas on kaks kaarti?
     pildikaart = ("J", "Q", "K")
-    kaardid_pildita = ["10" if kaart.split()[1] in pildikaart else kaart.split()[1] for kaart in kaardid]  # Pildikaart = "10"
+    # Pildikaart = "10"
+    kaardid_pildita = ["10" if kaart.split()[1] in pildikaart else kaart.split()[1] for kaart in kaardid]
 
     # Diileri nähtava kaardi asukoht tabelis
     diilervõimalik = ("2", "3", "4", "5", "6", "7", "8", "9", "10", "A")
@@ -242,7 +243,8 @@ class MustJaak:
             self.Kaardipakke = kaardipakid_arv_valik.get()
             self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
 
-            self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get()) for mängija in p_valikud.values() if mängija["olek"].get() == 1]
+            self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get())
+                         for mängija in p_valikud.values() if mängija["olek"].get() == 1]
             self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
 
             self.MängijadArv = len(self.mängijad)
@@ -255,13 +257,16 @@ class MustJaak:
         mängijad_tabel = ttk.Frame(self.aken)
 
         p = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"]
-        p_valikud = {nimi: {"olek": tk.IntVar(value=0), "inimene": tk.IntVar(value=0), "nimi": tk.StringVar()} for nimi in p}
+        p_valikud = {nimi: {"olek": tk.IntVar(value=0), "inimene": tk.IntVar(value=0), "nimi": tk.StringVar()}
+                     for nimi in p}
         i = 0
         for valik in p_valikud.values():
-            valik_kast = ttk.Checkbutton(mängijad_tabel, text=f"Mängija {i + 1}", variable=valik["olek"], onvalue=1, offvalue=0)
+            valik_kast = ttk.Checkbutton(mängijad_tabel,
+                                         text=f"Mängija {i + 1}", variable=valik["olek"], onvalue=1, offvalue=0)
             valik_kast.grid(row=0, column=i * 2, columnspan=2, padx=5, pady=5)
 
-            arvuti_valik = ttk.Checkbutton(mängijad_tabel, text="Inimene", variable=valik["inimene"], onvalue=1, offvalue=0)
+            arvuti_valik = ttk.Checkbutton(mängijad_tabel,
+                                           text="Inimene", variable=valik["inimene"], onvalue=1, offvalue=0)
             arvuti_valik.grid(row=1, column=i * 2, columnspan=2, padx=5, pady=5)
 
             nimi_pealkiri = ttk.Label(mängijad_tabel, text="Mängija nimi: ")
@@ -307,7 +312,7 @@ class MustJaak:
         self.double_nupp.grid(row=0, column=2, padx=5, pady=5)
 
         self.surrender_nupp = ttk.Button(nupudosa,
-                                        text="Surrender", state="disabled", command=lambda: mängijavalik("Surrender"))
+                                         text="Surrender", state="disabled", command=lambda: mängijavalik("Surrender"))
         self.surrender_nupp.grid(row=0, column=3, padx=5, pady=5)
 
         self.split_nupp = ttk.Button(nupudosa, text="Split", state="disabled", command=lambda: mängijavalik("Split"))
@@ -435,7 +440,8 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
 
                     # Alamkäsi mängijate nimekirja
-                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, mängija))  # Alamkäele kutsutakse välja Mängija klass
+                    # Alamkäele kutsutakse välja Mängija klass
+                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, mängija))
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
 
                     uus_mängija = self.käed[i]
