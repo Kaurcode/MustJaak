@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from random import shuffle, randint
 from time import sleep
 from PIL import ImageTk, Image
@@ -211,6 +212,8 @@ class MustJaak:
         self.root = root
         self.root.title("Blackjack")
         self.root.geometry("1200x600")
+        self.stiil = ttk.Style()
+        self.stiil.theme_use("vista")
 
         self.kaardipakk = None
         self.mängijad = None
@@ -247,24 +250,24 @@ class MustJaak:
 
             self.mäng()
 
-        self.aken = tk.Frame(self.root)
+        self.aken = ttk.Frame(self.root)
 
-        mängijad_tabel = tk.Frame(self.aken)
+        mängijad_tabel = ttk.Frame(self.aken)
 
         p = ["p1", "p2", "p3", "p4", "p5", "p6", "p7"]
         p_valikud = {nimi: {"olek": tk.IntVar(value=0), "inimene": tk.IntVar(value=0), "nimi": tk.StringVar()} for nimi in p}
         i = 0
         for valik in p_valikud.values():
-            valik_kast = tk.Checkbutton(mängijad_tabel, text=f"Mängija {i + 1}", variable=valik["olek"], onvalue=1, offvalue=0)
+            valik_kast = ttk.Checkbutton(mängijad_tabel, text=f"Mängija {i + 1}", variable=valik["olek"], onvalue=1, offvalue=0)
             valik_kast.grid(row=0, column=i * 2, columnspan=2, padx=5, pady=5)
 
-            arvuti_valik = tk.Checkbutton(mängijad_tabel, text="Inimene", variable=valik["inimene"], onvalue=1, offvalue=0)
+            arvuti_valik = ttk.Checkbutton(mängijad_tabel, text="Inimene", variable=valik["inimene"], onvalue=1, offvalue=0)
             arvuti_valik.grid(row=1, column=i * 2, columnspan=2, padx=5, pady=5)
 
-            nimi_pealkiri = tk.Label(mängijad_tabel, text="Mängija nimi: ")
+            nimi_pealkiri = ttk.Label(mängijad_tabel, text="Mängija nimi: ")
             nimi_pealkiri.grid(row=2, column=i * 2, columnspan=2, padx=5, pady=5)
 
-            nimi_väli = tk.Entry(mängijad_tabel, textvariable=valik["nimi"])
+            nimi_väli = ttk.Entry(mängijad_tabel, textvariable=valik["nimi"])
             nimi_väli.insert(tk.END, f"Mängija {i + 1}")
             nimi_väli.grid(row=3, column=i * 2, columnspan=2, padx=5, pady=5)
 
@@ -272,7 +275,7 @@ class MustJaak:
 
         mängijad_tabel.pack()
 
-        kaardipakid_arv_pealkiri = tk.Label(self.aken, text="Kaardipakke:")
+        kaardipakid_arv_pealkiri = ttk.Label(self.aken, text="Kaardipakke:")
 
         kaardipakid_arv_valikud = list(range(1, 9))
         kaardipakid_arv_valik = tk.IntVar(value=8)
@@ -281,7 +284,7 @@ class MustJaak:
         kaardipakid_arv_pealkiri.pack()
         kaardipakid_arv_menüü.pack()
 
-        valitud_nupp = tk.Button(self.aken, text="Edasi", command=edasi)
+        valitud_nupp = ttk.Button(self.aken, text="Edasi", command=edasi)
         valitud_nupp.pack()
 
         self.aken.pack()
@@ -292,22 +295,22 @@ class MustJaak:
             self.langetatud_valik = valik
             self.aken.quit()
 
-        nupudosa = tk.Frame(self.aken)
+        nupudosa = ttk.Frame(self.aken)
 
-        self.hit_nupp = tk.Button(nupudosa, text="Hit", state="disabled", command=lambda: mängijavalik("Hit"))
+        self.hit_nupp = ttk.Button(nupudosa, text="Hit", state="disabled", command=lambda: mängijavalik("Hit"))
         self.hit_nupp.grid(row=0, column=0, padx=5, pady=5)
 
-        self.stand_nupp = tk.Button(nupudosa, text="Stand", state="disabled", command=lambda: mängijavalik("Stand"))
+        self.stand_nupp = ttk.Button(nupudosa, text="Stand", state="disabled", command=lambda: mängijavalik("Stand"))
         self.stand_nupp.grid(row=0, column=1, padx=5, pady=5)
 
-        self.double_nupp = tk.Button(nupudosa, text="Double", state="disabled", command=lambda: mängijavalik("Double"))
+        self.double_nupp = ttk.Button(nupudosa, text="Double", state="disabled", command=lambda: mängijavalik("Double"))
         self.double_nupp.grid(row=0, column=2, padx=5, pady=5)
 
-        self.surrender_nupp = tk.Button(nupudosa,
+        self.surrender_nupp = ttk.Button(nupudosa,
                                         text="Surrender", state="disabled", command=lambda: mängijavalik("Surrender"))
         self.surrender_nupp.grid(row=0, column=3, padx=5, pady=5)
 
-        self.split_nupp = tk.Button(nupudosa, text="Split", state="disabled", command=lambda: mängijavalik("Split"))
+        self.split_nupp = ttk.Button(nupudosa, text="Split", state="disabled", command=lambda: mängijavalik("Split"))
         self.split_nupp.grid(row=0, column=4, padx=5, pady=5)
 
         nupudosa.pack(pady=10)
@@ -334,44 +337,44 @@ class MustJaak:
 
     def mängulaud(self):
         self.aken.destroy()
-        self.aken = tk.Frame(self.root)
+        self.aken = ttk.Frame(self.root)
 
-        diiler_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKnimi)
+        diiler_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKnimi)
         diiler_pealkiri.pack(pady=5)
 
         self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=90, height=115)
         self.diiler.kaardid_pildiga.pack(pady=5)
         self.diiler.uuenda_pildikaarte()
 
-        diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
+        diileri_käsi = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         diileri_käsi.pack(pady=5)
 
-        väärtus_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKväärtus)
+        väärtus_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKväärtus)
         väärtus_pealkiri.pack(pady=5)
 
-        mängijad_aken = tk.Frame(self.aken)
+        mängijad_aken = ttk.Frame(self.aken)
 
         for mängija, i in zip(self.mängijad, range(self.MängijadArv)):
             self.aken.columnconfigure(i, weight=1)
 
-            mängija_pealkiri = tk.Label(mängijad_aken, text=mängija)
+            mängija_pealkiri = ttk.Label(mängijad_aken, text=mängija)
             mängija_pealkiri.grid(row=0, column=i, padx=5, pady=5)
 
             käed = self.mängijad[mängija]
-            käed_aken = tk.Frame(mängijad_aken)
+            käed_aken = ttk.Frame(mängijad_aken)
 
             for j, käsi in enumerate(käed):
-                käsi_pealkiri = tk.Label(käed_aken, text=f"Käsi #{j+1}:")
+                käsi_pealkiri = ttk.Label(käed_aken, text=f"Käsi #{j+1}:")
                 käsi_pealkiri.grid(row=0, column=j, padx=5, pady=5)
 
                 käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=90, height=115)
                 käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5)
                 käsi.uuenda_pildikaarte()
 
-                mängija_käsi = tk.Label(käed_aken, textvariable=käsi.TKkaardid)
+                mängija_käsi = ttk.Label(käed_aken, textvariable=käsi.TKkaardid)
                 mängija_käsi.grid(row=2, column=j, padx=5, pady=5)
 
-                väärtus_pealkiri = tk.Label(käed_aken, textvariable=käsi.TKväärtus)
+                väärtus_pealkiri = ttk.Label(käed_aken, textvariable=käsi.TKväärtus)
                 väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5)
 
             käed_aken.grid(row=1, column=i)
