@@ -341,6 +341,7 @@ class MustJaak:
 
         self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=90, height=115)
         self.diiler.kaardid_pildiga.pack(pady=5)
+        self.diiler.uuenda_pildikaarte()
 
         diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         diileri_käsi.pack(pady=5)
@@ -365,14 +366,13 @@ class MustJaak:
 
                 käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=90, height=115)
                 käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5)
+                käsi.uuenda_pildikaarte()
 
                 mängija_käsi = tk.Label(käed_aken, textvariable=käsi.TKkaardid)
                 mängija_käsi.grid(row=2, column=j, padx=5, pady=5)
 
                 väärtus_pealkiri = tk.Label(käed_aken, textvariable=käsi.TKväärtus)
                 väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5)
-
-                käsi.uuenda_pildikaarte()
 
             käed_aken.grid(row=1, column=i)
 
