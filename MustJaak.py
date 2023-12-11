@@ -1,6 +1,7 @@
 import tkinter as tk
 from random import shuffle, randint
 from time import sleep
+from PIL import ImageTk, Image
 
 
 class Kaardipakk:
@@ -24,6 +25,10 @@ class Kaardipakk:
         self.kaardihulk = pakikogus * 52  # Kaartide kogus, et ei peaks koguaeg len()-i välja kutsuma
         self.vahekaart = randint(round(self.kaardihulk * 0.4), round(self.kaardihulk * 0.6))  # Millal uuesti segatakse?
 
+        kaardipildid = {kaart: Image.open(f"Kaardid/{osad[0][:3] + osad[1]}.png").resize((50, 73)) for kaart, osad in
+                        [(kaart, kaart.split()) for kaart in üks_pakk]}
+        self.kaardipildid = {kaart: ImageTk.PhotoImage(pilt) for kaart, pilt in kaardipildid.items()}
+
     # Kaardipakist võetakse uus kaart
     def hit(self):
         self.kaardihulk -= 1
@@ -33,7 +38,7 @@ class Kaardipakk:
 
 # Igal mängijal oma käsi(kaardid) ning load, mida ta teha võib
 class Mängija:
-    def __init__(self, nimi, inimene=0, ülemkäsi=None):
+    def __init__(self, nimi, kaardipakk, inimene=0, ülemkäsi=None):
         self.inimene = inimene
         self.ülemkäsi = ülemkäsi
 
@@ -42,6 +47,7 @@ class Mängija:
 
         self.kaardid = []  # Käesolevad kaardid
         self.TKkaardid = tk.StringVar()
+        self.kaardid_pildiga = None
 
         self.väärtus = 0  # Kaartide väärtus kokku
         self.TKväärtus = tk.IntVar(value=0)
@@ -56,6 +62,10 @@ class Mängija:
         self.kaart = None  # Mis on viimati mängijale määratud kaart?
         self.kaardiväärtus = None  # Mis on viimati mängijale määratud kaardi väärtus?
         self.tiitel = None  # Mis on viimati mängijale määratud kaardi tiitel?
+
+        self.kaardipakk = kaardipakk
+        self.x_pos = 1
+        self.y_pos = 1
 
     # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
@@ -78,6 +88,9 @@ class Mängija:
 
         self.TKkaardid.set("\n".join(self.kaardid))
         self.TKväärtus.set(self.väärtus)
+        self.kaardid_pildiga.create_image(self.x_pos, self.y_pos, image=self.kaardipakk.kaardipildid[self.kaart], anchor=tk.NW)
+        self.x_pos += 10
+        self.y_pos += 10
 
     def split(self):
         self.väärtus -= self.kaardiväärtus  # Käe väärtus väheneb eelneva kaardi väärtuse võrra
@@ -199,6 +212,7 @@ class MustJaak:
         self.double_nupp = None
         self.surrender_nupp = None
         self.split_nupp = None
+        self.kaardipildid = None
 
         # Mängusätete määramine
         self.Kaardipakke = 4
@@ -210,14 +224,14 @@ class MustJaak:
 
     def mängusätted(self):
         def edasi():
-            self.käed = [Mängija(mängija["nimi"].get(), mängija["inimene"].get()) for mängija in p_valikud.values() if mängija["olek"].get() == 1]
+            self.Kaardipakke = kaardipakid_arv_valik.get()
+            self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
+
+            self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get()) for mängija in p_valikud.values() if mängija["olek"].get() == 1]
             self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
 
             self.MängijadArv = len(self.mängijad)
             self.KäedArv = self.MängijadArv
-
-            self.Kaardipakke = kaardipakid_arv_valik.get()
-            self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
 
             self.mäng()
 
@@ -313,6 +327,9 @@ class MustJaak:
         diiler_pealkiri = tk.Label(self.aken, textvariable=self.diiler.TKnimi)
         diiler_pealkiri.pack(pady=5)
 
+        self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=90, height=115)
+        self.diiler.kaardid_pildiga.pack(pady=5)
+
         diileri_käsi = tk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         diileri_käsi.pack(pady=5)
 
@@ -334,11 +351,14 @@ class MustJaak:
                 käsi_pealkiri = tk.Label(käed_aken, text=f"Käsi #{j+1}:")
                 käsi_pealkiri.grid(row=0, column=j, padx=5, pady=5)
 
+                käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=90, height=115)
+                käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5)
+
                 mängija_käsi = tk.Label(käed_aken, textvariable=käsi.TKkaardid)
-                mängija_käsi.grid(row=1, column=j, padx=5, pady=5)
+                mängija_käsi.grid(row=2, column=j, padx=5, pady=5)
 
                 väärtus_pealkiri = tk.Label(käed_aken, textvariable=käsi.TKväärtus)
-                väärtus_pealkiri.grid(row=2, column=j, padx=5, pady=5)
+                väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5)
 
             käed_aken.grid(row=1, column=i)
 
@@ -347,10 +367,10 @@ class MustJaak:
         self.aken.pack()
 
     def mäng(self):
-        self.diiler = Mängija("Diiler")
+        self.diiler = Mängija("Diiler", self.kaardipakk)
+        self.mängulaud()
         self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
         print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
-        self.mängulaud()
         i = 0
         while self.KäedArv > i:
             mängija = self.käed[i]
