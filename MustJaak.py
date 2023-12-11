@@ -402,11 +402,10 @@ class MustJaak:
             self.root.update()
             sleep(0.5)
             i += 1
-            if i == self.KäedArv:
-                self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
-                self.root.update()
-                print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
-                sleep(0.5)
+        self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
+        self.root.update()
+        print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+        sleep(0.5)
         i = 0
         while self.KäedArv > i:
             mängija = self.käed[i]
