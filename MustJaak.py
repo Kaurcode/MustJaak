@@ -323,13 +323,13 @@ class MustJaak:
 
         nupudosa.pack(pady=10)
 
-    def nupud_olek(self, olek=0):
+    def nupud_olek(self, olek=0, mängija=None):
         if olek:
             self.hit_nupp["state"] = "normal"
             self.stand_nupp["state"] = "normal"
-            self.double_nupp["state"] = "normal"
-            self.surrender_nupp["state"] = "normal"
-            self.split_nupp["state"] = "normal"
+            self.double_nupp["state"] = "normal" if mängija.luba_double else "disable"
+            self.surrender_nupp["state"] = "normal" if mängija.luba_surr else "disable"
+            self.split_nupp["state"] = "normal" if mängija.luba_split else "disable"
         else:
             self.hit_nupp["state"] = "disable"
             self.stand_nupp["state"] = "disable"
@@ -338,8 +338,8 @@ class MustJaak:
             self.split_nupp["state"] = "disable"
         self.root.update()
 
-    def langeta_valik(self):
-        self.nupud_olek(1)
+    def langeta_valik(self, mängija):
+        self.nupud_olek(1, mängija)
         self.aken.mainloop()
         return self.langetatud_valik
 
@@ -410,12 +410,13 @@ class MustJaak:
         i = 0
         while self.KäedArv > i:
             mängija = self.käed[i]
+            print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             i += 1
             # nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
             while mängija.väärtus <= 21:  # Ei ole "bust"
                 # Päris mängija (inimene) teeb ise valikuid
                 if mängija.inimene:
-                    valik = self.langeta_valik()
+                    valik = self.langeta_valik(mängija)
                 else:
                     sleep(1)
                     valik = strateegia(mängija, self.diiler)
@@ -423,11 +424,9 @@ class MustJaak:
                 # Uus kaart
                 if valik == "Hit":
                     mängija.uuskaart(self.kaardipakk.hit())
-                    print(self.kaardipakk.kaart)
                 # Ainult üks uus kaart (topelt panus)
                 elif valik == "Double" and mängija.luba_double == 1:
                     mängija.uuskaart(self.kaardipakk.hit())
-                    print(self.kaardipakk.kaart)
                     print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
                     self.root.update()
                     break
