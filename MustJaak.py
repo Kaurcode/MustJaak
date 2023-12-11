@@ -33,8 +33,8 @@ class Kaardipakk:
     # Kaardipakist võetakse uus kaart
     def hit(self):
         self.kaardihulk -= 1
-        self.kaart = self.kaardipakk.pop(0)
-        # self.kaart = "Ruutu 8"  # Testimiseks
+        # self.kaart = self.kaardipakk.pop(0)
+        self.kaart = "Ruutu 8"  # Testimiseks
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
@@ -107,6 +107,7 @@ class Mängija:
         return väljuv_kaart, self.kaardiväärtus  # Kaart antakse edasi n.ö. alamkäele(eraldi mängija)
 
     def uuenda_pildikaarte(self):
+        self.kaardid_pildiga.delete("all")
         self.x_pos = 1
         self.y_pos = 1
         for i in range(self.kaardidarv):
@@ -399,11 +400,12 @@ class MustJaak:
         while self.KäedArv > i:
             mängija = self.käed[i]
             i += 1
-            mängija.uuskaart(self.kaardipakk.hit())
-            self.root.update()
-            sleep(1)
-            # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
-            mängija.uuskaart(self.kaardipakk.hit()) if mängija.kaardidarv == 1 else None
+            if mängija.kaardidarv == 0:
+                mängija.uuskaart(self.kaardipakk.hit())
+                self.root.update()
+                sleep(1)
+                # Kui mängija kasutas split-i, siis on vaja ainult ühte kaarti
+                mängija.uuskaart(self.kaardipakk.hit())
             self.root.update()
             print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             # nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
@@ -451,7 +453,13 @@ class MustJaak:
 
                     self.mängulaud()
                     uus_mängija.uuskaart(mängija.split())  # Üks mängija kaart alammängijale
+                    self.root.update()
+                    sleep(1)
                     mängija.uuskaart(self.kaardipakk.hit())  # Mängijale üks kaart juurde (kuna ühe andis ära)
+                    self.root.update()
+                    sleep(1)
+                    uus_mängija.uuskaart(self.kaardipakk.hit())
+                    self.root.update()
                 # Kui ükski valik ei sobi -> vale sisestus
                 else:
                     print("Vale sisestus.", end=" ")
