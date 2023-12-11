@@ -33,8 +33,8 @@ class Kaardipakk:
     # Kaardipakist võetakse uus kaart
     def hit(self):
         self.kaardihulk -= 1
-        # self.kaart = self.kaardipakk.pop(0)
-        self.kaart = "Ruutu 8"  # Testimiseks
+        self.kaart = self.kaardipakk.pop(0)
+        # self.kaart = "Ruutu 8"  # Testimiseks
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
