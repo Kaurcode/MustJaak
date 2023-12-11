@@ -33,6 +33,7 @@ class Kaardipakk:
     def hit(self):
         self.kaardihulk -= 1
         self.kaart = self.kaardipakk.pop(0)
+        # self.kaart = "Ruutu 8"  # Testimiseks
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
@@ -88,7 +89,8 @@ class Mängija:
 
         self.TKkaardid.set("\n".join(self.kaardid))
         self.TKväärtus.set(self.väärtus)
-        self.kaardid_pildiga.create_image(self.x_pos, self.y_pos, image=self.kaardipakk.kaardipildid[self.kaart], anchor=tk.NW)
+        self.kaardid_pildiga.create_image(self.x_pos, self.y_pos, image=self.kaardipakk.kaardipildid[self.kaart],
+                                          anchor=tk.NW)
         self.x_pos += 10
         self.y_pos += 10
 
@@ -99,7 +101,17 @@ class Mängija:
         self.A11 += 1 if self.tiitel == "A" else 0
         väljuv_kaart = self.kaardid.pop()
         self.TKkaardid.set("\n".join(self.kaardid))
+        self.uuenda_pildikaarte()
         return väljuv_kaart, self.kaardiväärtus  # Kaart antakse edasi n.ö. alamkäele(eraldi mängija)
+
+    def uuenda_pildikaarte(self):
+        self.x_pos = 1
+        self.y_pos = 1
+        for i in range(self.kaardidarv):
+            self.kaardid_pildiga.create_image(self.x_pos, self.y_pos,
+                                              image=self.kaardipakk.kaardipildid[self.kaardid[i]], anchor=tk.NW)
+            self.x_pos += 10
+            self.y_pos += 10
 
 
 # Olenevalt kaartidest väljastab funktsioon parima valiku
@@ -360,6 +372,8 @@ class MustJaak:
                 väärtus_pealkiri = tk.Label(käed_aken, textvariable=käsi.TKväärtus)
                 väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5)
 
+                käsi.uuenda_pildikaarte()
+
             käed_aken.grid(row=1, column=i)
 
         mängijad_aken.pack(pady=10)
@@ -418,7 +432,7 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
 
                     # Alamkäsi mängijate nimekirja
-                    self.käed.insert(i, Mängija(mängija.nimi, mängija.inimene, mängija))  # Alamkäele kutsutakse välja Mängija klass
+                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, mängija))  # Alamkäele kutsutakse välja Mängija klass
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
 
                     uus_mängija = self.käed[i]
