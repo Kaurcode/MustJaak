@@ -59,7 +59,7 @@ class Mängija:
 
         self.luba_double = 0  # Kas mängija võib panust tõsta?
         self.luba_split = 0  # Kas mängija võib käe "kaheks" teha (split)?
-        self.luba_surr = 1
+        self.luba_surr = 1  # Kas mängija võib "alla anda"
 
         self.kaart = None  # Mis on viimati mängijale määratud kaart?
         self.kaardiväärtus = None  # Mis on viimati mängijale määratud kaardi väärtus?
