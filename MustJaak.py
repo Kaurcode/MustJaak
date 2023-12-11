@@ -90,6 +90,7 @@ class Mängija:
 
         self.TKkaardid.set("\n".join(self.kaardid))
         self.TKväärtus.set(self.väärtus)
+        self.kaardid_pildiga.config(width=50 + self.x_pos, height=73 + self.y_pos)
         self.kaardid_pildiga.create_image(self.x_pos, self.y_pos, image=self.kaardipakk.kaardipildid[self.kaart],
                                           anchor=tk.NW)
         self.x_pos += 10
@@ -109,6 +110,7 @@ class Mängija:
         self.x_pos = 1
         self.y_pos = 1
         for i in range(self.kaardidarv):
+            self.kaardid_pildiga.config(width=50 + self.x_pos, height=73 + self.y_pos)
             self.kaardid_pildiga.create_image(self.x_pos, self.y_pos,
                                               image=self.kaardipakk.kaardipildid[self.kaardid[i]], anchor=tk.NW)
             self.x_pos += 10
@@ -152,7 +154,7 @@ def strateegia(mängija, diiler):
         valik = tabel[kaartindeks][diilerindeks]
 
     # "Soft totals" - Pehme väärtus (kaartide seas esineb äss)
-    elif mängija.A11:
+    elif mängija.A11 and mängija.kaardidarv > 1:
         muu_väärtus = mängija.väärtus - 11
         muud_väärtused = tuple(range(10, 1, -1))
         väärtusindeks = muud_väärtused.index(muu_väärtus)
@@ -347,7 +349,7 @@ class MustJaak:
         diiler_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKnimi)
         diiler_pealkiri.pack(pady=5)
 
-        self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=90, height=115)
+        self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=51, height=74)
         self.diiler.kaardid_pildiga.pack(pady=5)
         self.diiler.uuenda_pildikaarte()
 
@@ -372,7 +374,7 @@ class MustJaak:
                 käsi_pealkiri = ttk.Label(käed_aken, text=f"Käsi #{j+1}:")
                 käsi_pealkiri.grid(row=0, column=j, padx=5, pady=5)
 
-                käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=90, height=115)
+                käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=51, height=74)
                 käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5)
                 käsi.uuenda_pildikaarte()
 
