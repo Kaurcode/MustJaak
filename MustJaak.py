@@ -104,9 +104,10 @@ class Mängija:
 
     def split(self):
         self.väärtus -= self.kaardiväärtus  # Käe väärtus väheneb eelneva kaardi väärtuse võrra
+        self.väärtus += 10 if self.tiitel == "A" else 0
+        self.A11 += 1 if self.tiitel == "A" else 0
         self.TKväärtus.set(self.väärtus)
         self.kaardidarv -= 1  # Üks kaart vähem
-        self.A11 += 1 if self.tiitel == "A" else 0
         väljuv_kaart = self.kaardid.pop()
         self.TKkaardid.set("\n".join(self.kaardid))
         self.uuenda_pildikaarte()
@@ -240,6 +241,9 @@ class MustJaak:
         self.root.geometry("1200x600")
         self.stiil = ttk.Style()
         self.stiil.theme_use("vista")
+        taustapildifail = "Lisad/taust.jpg"
+        self.taustapilt = Image.open(taustapildifail)
+        self.taustapilt_tk = ImageTk.PhotoImage(self.taustapilt)
 
         self.kaardipakk = None
         self.mängijad = None
@@ -370,6 +374,8 @@ class MustJaak:
         self.aken.destroy()
         self.aken = ttk.Frame(self.root)
 
+        taust = tk.Canvas(self.aken, width=0, height=0)
+
         self.diiler.aktiivsustaust = tk.Canvas(self.aken, width=110, height=1)
         self.diiler.aktiivsustaust.grid(row=0, rowspan=5, column=0, sticky="ns")
 
@@ -387,7 +393,7 @@ class MustJaak:
         self.diiler.väärtus_pealkiri.grid(row=3, column=0, pady=5)
 
         self.diiler.aktiivsuskast = tk.Canvas(self.aken, width=100, height=5)
-        self.diiler.aktiivsuskast.grid(row=4, column=0, pady=5, sticky="s")
+        self.diiler.aktiivsuskast.grid(row=4, column=0)
         self.diiler.aktiivne()
 
         mängijad_aken = ttk.Frame(self.aken)
@@ -426,8 +432,16 @@ class MustJaak:
             käed_aken.grid(row=1, column=i, sticky="sew")
 
         mängijad_aken.grid(row=5, column=0, pady=10)
+
         self.nupud()
         self.aken.pack()
+        self.root.update()
+
+        self.taustapilt = self.taustapilt.resize((self.root.winfo_width(), self.root.winfo_height()))
+        self.taustapilt_tk = ImageTk.PhotoImage(self.taustapilt)
+        taust.create_image(0, 0, anchor=tk.NW, image=self.taustapilt_tk)
+        taust.grid(column=0, row=0, rowspan=7, sticky="nsew")
+        taust.config(width=self.taustapilt.width, height=self.taustapilt.height)
 
     def mäng(self):
         self.diiler = Mängija("Diiler", self.kaardipakk)
