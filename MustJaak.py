@@ -348,7 +348,7 @@ class MustJaak:
         self.split_nupp = ttk.Button(nupudosa, text="Split", state="disabled", command=lambda: mängijavalik("Split"))
         self.split_nupp.grid(row=0, column=4, padx=5, pady=5)
 
-        nupudosa.grid(row=6, column=0, pady=10)
+        nupudosa.grid(row=6, column=0, pady=5)
 
     def nupud_olek(self, olek=0, mängija=None):
         if olek:
@@ -374,26 +374,28 @@ class MustJaak:
         self.aken.destroy()
         self.aken = ttk.Frame(self.root)
 
+        self.aken.rowconfigure(5, weight=1)
+
         taust = tk.Canvas(self.aken, width=0, height=0)
 
-        self.diiler.aktiivsustaust = tk.Canvas(self.aken, width=110, height=1)
-        self.diiler.aktiivsustaust.grid(row=0, rowspan=5, column=0, sticky="ns")
+        self.diiler.aktiivsustaust = tk.Canvas(self.aken, width=110, height=1, highlightthickness=0)
+        self.diiler.aktiivsustaust.grid(row=0, rowspan=5, column=0, sticky="ns", pady=10)
 
         self.diiler.pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKnimi)
-        self.diiler.pealkiri.grid(row=0, column=0, pady=5)
+        self.diiler.pealkiri.grid(row=0, column=0, pady=15)
 
         self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=50, height=73, highlightthickness=0)
-        self.diiler.kaardid_pildiga.grid(row=1, column=0, pady=5)
+        self.diiler.kaardid_pildiga.grid(row=1, column=0)
         self.diiler.uuenda_pildikaarte()
 
         self.diiler.kaardiväli = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
         self.diiler.kaardiväli.grid(row=2, column=0, pady=5)
 
         self.diiler.väärtus_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKväärtus)
-        self.diiler.väärtus_pealkiri.grid(row=3, column=0, pady=5)
+        self.diiler.väärtus_pealkiri.grid(row=3, column=0)
 
         self.diiler.aktiivsuskast = tk.Canvas(self.aken, width=100, height=5)
-        self.diiler.aktiivsuskast.grid(row=4, column=0)
+        self.diiler.aktiivsuskast.grid(row=4, column=0, pady=15)
         self.diiler.aktiivne()
 
         mängijad_aken = ttk.Frame(self.aken)
@@ -431,7 +433,7 @@ class MustJaak:
 
             käed_aken.grid(row=1, column=i, sticky="sew")
 
-        mängijad_aken.grid(row=5, column=0, pady=10)
+        mängijad_aken.grid(row=5, column=0)
 
         self.nupud()
         self.aken.pack()
