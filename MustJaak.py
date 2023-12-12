@@ -69,6 +69,12 @@ class Mängija:
         self.x_pos = 1
         self.y_pos = 1
 
+        self.aktiivsuskast = None
+        self.aktiivsustaust = None
+        self.pealkiri = None
+        self.kaardiväli = None
+        self.väärtus_pealkiri = None
+
     # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
         self.kaart, self.kaardiväärtus = kaartväärtus  # Kaart ise ja selle väärtus
@@ -116,6 +122,22 @@ class Mängija:
                                               image=self.kaardipakk.kaardipildid[self.kaardid[i]], anchor=tk.NW)
             self.x_pos += 10
             self.y_pos += 10
+
+    def aktiivne(self, aktiivsus=0):
+        if aktiivsus:
+            self.aktiivsuskast.configure(bg="green")
+            self.aktiivsustaust.configure(bg="lightgreen")
+            self.kaardid_pildiga.config(bg="lightgreen")
+            self.pealkiri.configure(background="lightgreen")
+            self.kaardiväli.configure(background="lightgreen")
+            self.väärtus_pealkiri.configure(background="lightgreen")
+        else:
+            self.aktiivsuskast.configure(bg="blue")
+            self.aktiivsustaust.configure(bg="lightblue")
+            self.kaardid_pildiga.config(bg="lightblue")
+            self.pealkiri.configure(background="lightblue")
+            self.kaardiväli.configure(background="lightblue")
+            self.väärtus_pealkiri.configure(background="lightblue")
 
 
 # Olenevalt kaartidest väljastab funktsioon parima valiku
@@ -243,7 +265,7 @@ class MustJaak:
 
     def mängusätted(self):
         def edasi():
-            self.Kaardipakke = kaardipakid_arv_valik.get()
+            self.Kaardipakke = int(kaardipakid_arv_valik.get())
             self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
 
             self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get())
@@ -285,9 +307,10 @@ class MustJaak:
 
         kaardipakid_arv_pealkiri = ttk.Label(self.aken, text="Kaardipakke:")
 
-        kaardipakid_arv_valikud = list(range(1, 9))
-        kaardipakid_arv_valik = tk.IntVar(value=8)
-        kaardipakid_arv_menüü = tk.OptionMenu(self.aken, kaardipakid_arv_valik, *kaardipakid_arv_valikud)
+        kaardipakid_arv_valikud = [str(i) for i in range(1, 9)]
+        kaardipakid_arv_valik = tk.StringVar(value="8")
+        kaardipakid_arv_menüü = ttk.Combobox(self.aken, textvariable=kaardipakid_arv_valik,
+                                             values=kaardipakid_arv_valikud, state="readonly")
 
         kaardipakid_arv_pealkiri.pack()
         kaardipakid_arv_menüü.pack()
@@ -321,7 +344,7 @@ class MustJaak:
         self.split_nupp = ttk.Button(nupudosa, text="Split", state="disabled", command=lambda: mängijavalik("Split"))
         self.split_nupp.grid(row=0, column=4, padx=5, pady=5)
 
-        nupudosa.pack(pady=10)
+        nupudosa.grid(row=6, column=0, pady=10)
 
     def nupud_olek(self, olek=0, mängija=None):
         if olek:
@@ -347,18 +370,25 @@ class MustJaak:
         self.aken.destroy()
         self.aken = ttk.Frame(self.root)
 
-        diiler_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKnimi)
-        diiler_pealkiri.pack(pady=5)
+        self.diiler.aktiivsustaust = tk.Canvas(self.aken, width=110, height=1)
+        self.diiler.aktiivsustaust.grid(row=0, rowspan=5, column=0, sticky="ns")
 
-        self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=51, height=74)
-        self.diiler.kaardid_pildiga.pack(pady=5)
+        self.diiler.pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKnimi)
+        self.diiler.pealkiri.grid(row=0, column=0, pady=5)
+
+        self.diiler.kaardid_pildiga = tk.Canvas(self.aken, width=50, height=73, highlightthickness=0)
+        self.diiler.kaardid_pildiga.grid(row=1, column=0, pady=5)
         self.diiler.uuenda_pildikaarte()
 
-        diileri_käsi = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
-        diileri_käsi.pack(pady=5)
+        self.diiler.kaardiväli = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
+        self.diiler.kaardiväli.grid(row=2, column=0, pady=5)
 
-        väärtus_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKväärtus)
-        väärtus_pealkiri.pack(pady=5)
+        self.diiler.väärtus_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKväärtus)
+        self.diiler.väärtus_pealkiri.grid(row=3, column=0, pady=5)
+
+        self.diiler.aktiivsuskast = tk.Canvas(self.aken, width=100, height=5)
+        self.diiler.aktiivsuskast.grid(row=4, column=0, pady=5, sticky="s")
+        self.diiler.aktiivne()
 
         mängijad_aken = ttk.Frame(self.aken)
 
@@ -372,22 +402,30 @@ class MustJaak:
             käed_aken = ttk.Frame(mängijad_aken)
 
             for j, käsi in enumerate(käed):
-                käsi_pealkiri = ttk.Label(käed_aken, text=f"Käsi #{j+1}:")
-                käsi_pealkiri.grid(row=0, column=j, padx=5, pady=5)
 
-                käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=51, height=74)
-                käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5)
+                käsi.aktiivsustaust = tk.Canvas(käed_aken, width=1, height=1)
+                käsi.aktiivsustaust.grid(row=0, rowspan=5, column=j, sticky="nsew")
+
+                käsi.pealkiri = ttk.Label(käed_aken, text=f"Käsi #{j+1}:")
+                käsi.pealkiri.grid(row=0, column=j, padx=5, pady=5, sticky="ns")
+
+                käsi.kaardid_pildiga = tk.Canvas(käed_aken, width=51, height=74, highlightthickness=0)
+                käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5, sticky="ns")
                 käsi.uuenda_pildikaarte()
 
-                mängija_käsi = ttk.Label(käed_aken, textvariable=käsi.TKkaardid)
-                mängija_käsi.grid(row=2, column=j, padx=5, pady=5)
+                käsi.kaardiväli = ttk.Label(käed_aken, textvariable=käsi.TKkaardid)
+                käsi.kaardiväli.grid(row=2, column=j, padx=5, pady=5, sticky="ns")
 
-                väärtus_pealkiri = ttk.Label(käed_aken, textvariable=käsi.TKväärtus)
-                väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5)
+                käsi.väärtus_pealkiri = ttk.Label(käed_aken, textvariable=käsi.TKväärtus)
+                käsi.väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5, sticky="ns")
 
-            käed_aken.grid(row=1, column=i)
+                käsi.aktiivsuskast = tk.Canvas(käed_aken, width=100, height=5)
+                käsi.aktiivsuskast.grid(row=4, column=j, padx=5, pady=5, sticky="sew")
+                käsi.aktiivne()
 
-        mängijad_aken.pack(pady=10)
+            käed_aken.grid(row=1, column=i, sticky="sew")
+
+        mängijad_aken.grid(row=5, column=0, pady=10)
         self.nupud()
         self.aken.pack()
 
@@ -409,6 +447,8 @@ class MustJaak:
         i = 0
         while self.KäedArv > i:
             mängija = self.käed[i]
+            mängija.aktiivne(1)
+            self.root.update()
             print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
             i += 1
             # nr = 1  # Antakse mängija "split" kätele (n.ö. alamkäsi)
@@ -455,6 +495,7 @@ class MustJaak:
                     self.root.update()
                     sleep(0.5)
                     uus_mängija.uuskaart(self.kaardipakk.hit())
+                    mängija.aktiivne(1)
                 # Kui ükski valik ei sobi -> vale sisestus
                 else:
                     print("Vale sisestus.", end=" ")
@@ -462,7 +503,11 @@ class MustJaak:
                 # Kuvab mängija käe (pärast "Hit" või "Split" valikut)
                 print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
                 self.root.update()
+            mängija.aktiivne()
+            self.root.update()
 
+        self.diiler.aktiivne(1)
+        self.root.update()
         self.diiler.uuskaart(self.kaardipakk.hit())
         print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
         self.root.update()
@@ -471,6 +516,8 @@ class MustJaak:
             self.diiler.uuskaart(self.kaardipakk.hit())
             self.root.update()
             print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+        self.diiler.aktiivne()
+        self.root.update()
 
 
 mäng = MustJaak(tk.Tk())
