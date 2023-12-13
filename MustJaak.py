@@ -34,7 +34,7 @@ class Kaardipakk:
     def hit(self):
         self.kaardihulk -= 1
         self.kaart = self.kaardipakk.pop(0)
-        # self.kaart = "Ruutu 8"  # Testimiseks
+        # self.kaart = "Ruutu A"  # Testimiseks
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
 
@@ -93,6 +93,9 @@ class Mängija:
         if self.väärtus > 21 and self.A11 > 0:
             self.väärtus -= 10
             self.A11 -= 1  # Ässasid, mille väärtus on 11, on nüüd ühe võrra vähem
+            if self.väärtus > 21 and self.A11 > 0:
+                self.väärtus -= 10
+                self.A11 -= 1  # Ässasid, mille väärtus on 11, on nüüd ühe võrra vähem
 
         self.TKkaardid.set("\n".join(self.kaardid))
         self.TKväärtus.set(self.väärtus)
