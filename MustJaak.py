@@ -54,6 +54,8 @@ class Mängija:
         self.väärtus = 0  # Kaartide väärtus kokku
         self.TKväärtus = tk.IntVar(value=0)
 
+        self.TKvalik = tk.StringVar()
+
         self.A11 = 0  # Mitu ässa on väärtusega 11?
         self.kaardidarv = 0  # Mitu kaarti käes on? Et ei peaks kasutama len()-i
 
@@ -64,6 +66,8 @@ class Mängija:
         self.kaart = None  # Mis on viimati mängijale määratud kaart?
         self.kaardiväärtus = None  # Mis on viimati mängijale määratud kaardi väärtus?
         self.tiitel = None  # Mis on viimati mängijale määratud kaardi tiitel?
+        self.pime_kaart = None
+        self.pimekaardi_väärtus = None
 
         self.kaardipakk = kaardipakk
         self.x_pos = 1
@@ -74,13 +78,12 @@ class Mängija:
         self.pealkiri = None
         self.kaardiväli = None
         self.väärtus_pealkiri = None
+        self.valiku_kast = None
 
     # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
         self.kaart, self.kaardiväärtus = kaartväärtus  # Kaart ise ja selle väärtus
-
         self.kaardid.append(self.kaart)
-        self.väärtus += self.kaardiväärtus
         self.tiitel = self.kaart.split()[1]
 
         self.kaardidarv += 1
@@ -88,11 +91,13 @@ class Mängija:
             self.luba_double = 1  # Lubatakse double, kui on ainult kaks kaarti
             self.luba_surr = 1
             # Lubatakse split, kui on kaks kaarti, mis on võrdsed
-            self.luba_split = 1 if self.kaardid[0].split()[1] == self.kaardid[1].split()[1] else 0
+            self.luba_split = 1 if self.väärtus == self.kaardiväärtus else 0
         elif self.kaardidarv == 3:
             self.luba_double = 0
             self.luba_surr = 0
             self.luba_split = 0
+
+        self.väärtus += self.kaardiväärtus
 
         # Äss saab olla, kas 1 või 11, ehk kui on väärtus üle 21, siis loetakse äss üheks
         self.A11 += 1 if self.tiitel == "A" else 0
@@ -110,6 +115,9 @@ class Mängija:
                                           anchor=tk.NW)
         self.x_pos += 10
         self.y_pos += 10
+
+    def uus_pime_kaart(self, kaartväärtus):
+        self.pime_kaart, self.pimekaardi_väärtus = kaartväärtus
 
     def split(self):
         self.väärtus -= self.kaardiväärtus  # Käe väärtus väheneb eelneva kaardi väärtuse võrra
@@ -139,14 +147,16 @@ class Mängija:
             self.aktiivsustaust.configure(bg="lightgreen")
             self.kaardid_pildiga.config(bg="lightgreen")
             self.pealkiri.configure(background="lightgreen")
-            self.kaardiväli.configure(background="lightgreen")
+            # self.kaardiväli.configure(background="lightgreen")
+            self.valiku_kast.configure(background="lightgreen")
             self.väärtus_pealkiri.configure(background="lightgreen")
         else:
             self.aktiivsuskast.configure(bg="blue")
             self.aktiivsustaust.configure(bg="lightblue")
             self.kaardid_pildiga.config(bg="lightblue")
             self.pealkiri.configure(background="lightblue")
-            self.kaardiväli.configure(background="lightblue")
+            # self.kaardiväli.configure(background="lightblue")
+            self.valiku_kast.configure(background="lightblue")
             self.väärtus_pealkiri.configure(background="lightblue")
 
 
@@ -397,11 +407,14 @@ class MustJaak:
         self.diiler.kaardid_pildiga.grid(row=1, column=0)
         self.diiler.uuenda_pildikaarte()
 
-        self.diiler.kaardiväli = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
-        self.diiler.kaardiväli.grid(row=2, column=0, pady=5)
+        # self.diiler.kaardiväli = ttk.Label(self.aken, textvariable=self.diiler.TKkaardid)
+        # self.diiler.kaardiväli.grid(row=2, column=0, pady=5)
 
         self.diiler.väärtus_pealkiri = ttk.Label(self.aken, textvariable=self.diiler.TKväärtus)
-        self.diiler.väärtus_pealkiri.grid(row=3, column=0)
+        self.diiler.väärtus_pealkiri.grid(row=2, column=0)
+
+        self.diiler.valiku_kast = ttk.Label(self.aken, textvariable=self.diiler.TKvalik)
+        self.diiler.valiku_kast.grid(row=3, column=0, padx=5, pady=5, sticky="ns")
 
         self.diiler.aktiivsuskast = tk.Canvas(self.aken, width=100, height=5)
         self.diiler.aktiivsuskast.grid(row=4, column=0, pady=15)
@@ -430,11 +443,14 @@ class MustJaak:
                 käsi.kaardid_pildiga.grid(row=1, column=j, padx=5, pady=5, sticky="ns")
                 käsi.uuenda_pildikaarte()
 
-                käsi.kaardiväli = ttk.Label(käed_aken, textvariable=käsi.TKkaardid)
-                käsi.kaardiväli.grid(row=2, column=j, padx=5, pady=5, sticky="ns")
+                # käsi.kaardiväli = ttk.Label(käed_aken, textvariable=käsi.TKkaardid)
+                # käsi.kaardiväli.grid(row=2, column=j, padx=5, pady=5, sticky="ns")
 
                 käsi.väärtus_pealkiri = ttk.Label(käed_aken, textvariable=käsi.TKväärtus)
-                käsi.väärtus_pealkiri.grid(row=3, column=j, padx=5, pady=5, sticky="ns")
+                käsi.väärtus_pealkiri.grid(row=2, column=j, padx=5, pady=5, sticky="ns")
+
+                käsi.valiku_kast = ttk.Label(käed_aken, textvariable=käsi.TKvalik)
+                käsi.valiku_kast.grid(row=3, column=j, padx=5, pady=5, sticky="ns")
 
                 käsi.aktiivsuskast = tk.Canvas(käed_aken, width=100, height=5)
                 käsi.aktiivsuskast.grid(row=4, column=j, padx=5, pady=5, sticky="sew")
@@ -466,6 +482,7 @@ class MustJaak:
             sleep(0.5)
             i += 1
         self.diiler.uuskaart(self.kaardipakk.hit())  # Nähtav kaart
+        self.diiler.uus_pime_kaart(self.kaardipakk.hit())  # Peidetud kaart
         self.root.update()
         print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
         sleep(0.5)
@@ -485,6 +502,7 @@ class MustJaak:
                     sleep(1)
                     valik = strateegia(mängija, self.diiler)
                     print(valik)
+                mängija.TKvalik.set(valik)
                 # Uus kaart
                 if valik == "Hit":
                     mängija.uuskaart(self.kaardipakk.hit())
@@ -533,14 +551,19 @@ class MustJaak:
 
         self.diiler.aktiivne(1)
         self.root.update()
-        self.diiler.uuskaart(self.kaardipakk.hit())
+        self.diiler.uuskaart((self.diiler.pime_kaart, self.diiler.pimekaardi_väärtus))
         print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
         self.root.update()
         while self.diiler.väärtus < 17 or self.diiler.väärtus == 17 and self.diiler.A11 > 0:
+            self.diiler.TKvalik.set("Hit")
             sleep(0.5)
             self.diiler.uuskaart(self.kaardipakk.hit())
             self.root.update()
             print(f"Diileri kaardid on: {self.diiler.kaardid} ning väärtus on {self.diiler.väärtus}")
+        if self.diiler.väärtus > 21:
+            self.diiler.TKvalik.set("Bust")
+        else:
+            self.diiler.TKvalik.set("Stand")
         self.diiler.aktiivne()
         self.root.update()
 
