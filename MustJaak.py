@@ -84,9 +84,15 @@ class Mängija:
         self.tiitel = self.kaart.split()[1]
 
         self.kaardidarv += 1
-        self.luba_double = 1 if self.kaardidarv == 2 else 0  # Lubatakse double, kui on ainult kaks kaarti
-        # Lubatakse split, kui on kaks kaarti, mis on võrdsed
-        self.luba_split = 1 if self.kaardidarv == 2 and self.kaardid[0].split()[1] == self.kaardid[1].split()[1] else 0
+        if self.kaardidarv == 2:
+            self.luba_double = 1  # Lubatakse double, kui on ainult kaks kaarti
+            self.luba_surr = 1
+            # Lubatakse split, kui on kaks kaarti, mis on võrdsed
+            self.luba_split = 1 if self.kaardid[0].split()[1] == self.kaardid[1].split()[1] else 0
+        elif self.kaardidarv == 3:
+            self.luba_double = 0
+            self.luba_surr = 0
+            self.luba_split = 0
 
         # Äss saab olla, kas 1 või 11, ehk kui on väärtus üle 21, siis loetakse äss üheks
         self.A11 += 1 if self.tiitel == "A" else 0
