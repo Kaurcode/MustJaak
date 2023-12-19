@@ -640,7 +640,7 @@ class MustJaak:
                 mängija.TKvalik.set("Bust")
             elif mängija.väärtus == self.diiler.väärtus:
                 mängija.TKvalik.set("Push")
-            elif mängija.väärtus == 21:
+            elif mängija.väärtus == 21 and mängija.kaardidarv == 2:
                 mängija.TKvalik.set("Blackjack")
             elif self.diiler.väärtus > 21:
                 mängija.TKvalik.set("Win")
