@@ -80,6 +80,32 @@ class Mängija:
         self.väärtus_pealkiri = None
         self.valiku_kast = None
 
+    def uus_mäng(self):
+        self.kaardid = []  # Käesolevad kaardid
+        self.TKkaardid.set("")
+        self.kaardid_pildiga = None
+
+        self.väärtus = 0  # Kaartide väärtus kokku
+        self.TKväärtus.set(0)
+
+        self.TKvalik.set("")
+
+        self.A11 = 0  # Mitu ässa on väärtusega 11?
+        self.kaardidarv = 0  # Mitu kaarti käes on? Et ei peaks kasutama len()-i
+
+        self.luba_double = 0  # Kas mängija võib panust tõsta?
+        self.luba_split = 0  # Kas mängija võib käe "kaheks" teha (split)?
+        self.luba_surr = 1  # Kas mängija võib "alla anda"
+
+        self.kaart = None  # Mis on viimati mängijale määratud kaart?
+        self.kaardiväärtus = None  # Mis on viimati mängijale määratud kaardi väärtus?
+        self.tiitel = None  # Mis on viimati mängijale määratud kaardi tiitel?
+        self.pime_kaart = None
+        self.pimekaardi_väärtus = None
+
+        self.x_pos = 1
+        self.y_pos = 1
+
     # Mängijale määratakse uus kaart
     def uuskaart(self, kaartväärtus):
         self.kaart, self.kaardiväärtus = kaartväärtus  # Kaart ise ja selle väärtus
@@ -470,6 +496,48 @@ class MustJaak:
         taust.grid(column=0, row=0, rowspan=7, sticky="nsew")
         taust.config(width=self.taustapilt.width, height=self.taustapilt.height)
 
+    def lopp_aken(self):
+        kusimus_aken = tk.Toplevel(self.root)
+        kusimus_aken.title("Uus mäng?")
+        kusimus_aken.geometry("300x200+500+250")
+
+        kusimus_pealkiri = ttk.Label(kusimus_aken, text="Raund läbi, uuesti?")
+        kusimus_pealkiri.pack(pady=20)
+
+        nupudosa = ttk.Frame(kusimus_aken)
+
+        def nupp(valik):
+            kusimus_aken.destroy()
+            self.aken.quit()
+
+            self.käed = [käsi for käsi in self.käed if not käsi.ülemkäsi]
+            self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
+            self.MängijadArv = len(self.mängijad)
+            self.KäedArv = self.MängijadArv
+            for mängija in self.käed:
+                mängija.uus_mäng()
+
+            if valik == "Raund":
+                self.mäng()
+            elif valik == "Mäng":
+                self.aken.destroy()
+                self.mängusätted()
+            else:
+                self.root.destroy()
+
+        uus_raund_nupp = ttk.Button(nupudosa, text="Uus raund", command=lambda: nupp("Raund"))
+        uus_raund_nupp.grid(row=0, column=0, padx=5, pady=5)
+
+        uus_mang_nupp = ttk.Button(nupudosa, text="Uus mäng", command=lambda: nupp("Mäng"))
+        uus_mang_nupp.grid(row=0, column=1, padx=5, pady=5)
+
+        valju_nupp = ttk.Button(nupudosa, text="Välju", command=lambda: nupp("Välju"))
+        valju_nupp.grid(row=0, column=2, padx=5, pady=5)
+
+        nupudosa.pack(pady=30)
+
+        self.aken.mainloop()
+
     def mäng(self):
         self.diiler = Mängija("Diiler", self.kaardipakk)
         self.mängulaud()
@@ -566,6 +634,24 @@ class MustJaak:
             self.diiler.TKvalik.set("Stand")
         self.diiler.aktiivne()
         self.root.update()
+        sleep(0.5)
+        for mängija in self.käed:
+            if mängija.väärtus > 21:
+                mängija.TKvalik.set("Bust")
+            elif mängija.väärtus == self.diiler.väärtus:
+                mängija.TKvalik.set("Push")
+            elif mängija.väärtus == 21:
+                mängija.TKvalik.set("Blackjack")
+            elif self.diiler.väärtus > 21:
+                mängija.TKvalik.set("Win")
+            elif mängija.väärtus > self.diiler.väärtus:
+                mängija.TKvalik.set("Win")
+            else:
+                mängija.TKvalik.set("Loss")
+            self.root.update()
+            sleep(0.5)
+
+        self.lopp_aken()
 
 
 mäng = MustJaak(tk.Tk())
