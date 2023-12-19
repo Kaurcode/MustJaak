@@ -50,7 +50,7 @@ class Kaardipakk:
 
 # Igal mängijal oma käsi(kaardid) ning load, mida ta teha võib
 class Mängija:
-    def __init__(self, nimi, kaardipakk, žetoonid=500, inimene=0, ülemkäsi=None, split=0):
+    def __init__(self, nimi, kaardipakk, inimene=0, žetoonid=500, ülemkäsi=None, split=0):
         self.inimene = inimene
         self.ülemkäsi = ülemkäsi
 
@@ -385,10 +385,13 @@ class MustJaak:
             nimi_väli.insert(tk.END, f"Mängija {i + 1}")
             nimi_väli.grid(row=3, column=i * 2, columnspan=2, padx=5, pady=5)
 
+            žetoonid_pealkiri = ttk.Label(mängijad_tabel, text="Žetoonid:")
+            žetoonid_pealkiri.grid(row=4, column=i * 2, columnspan=2, padx=5, pady=5)
+
             žetoonid_valik = ttk.Frame(mängijad_tabel)
             žetoonid_näit = ttk.Entry(žetoonid_valik, justify="center", textvariable=valik["žetoonid"]["kokku"])
             žetoonid_näit.configure(state="readonly")
-            žetoonid_näit.grid(row=0, column=0, columnspan=3)
+            žetoonid_näit.grid(row=0, column=0, columnspan=3, pady=5)
 
             žetoonid = (1, 5, 25, 100, 500)
             for j, žetoon in enumerate(žetoonid):
@@ -408,11 +411,12 @@ class MustJaak:
                 žetoon_nupp_m.grid(row=2 * j, column=0, pady=5)
                 žetoon_näit.grid(row=2 * j, column=1, pady=5)
                 žetoon_nupp_p.grid(row=2 * j, column=2, pady=5)
-            žetoonid_valik.grid(row=4, column=i * 2, columnspan=2, padx=5, pady=5)
+
+            žetoonid_valik.grid(row=5, column=i * 2, columnspan=2, padx=5, pady=5)
 
             i += 1
 
-        mängijad_tabel.pack()
+        mängijad_tabel.pack(pady=5)
 
         kaardipakid_arv_pealkiri = ttk.Label(self.aken, text="Kaardipakke:")
 
@@ -422,10 +426,10 @@ class MustJaak:
                                              values=kaardipakid_arv_valikud, state="readonly")
 
         kaardipakid_arv_pealkiri.pack()
-        kaardipakid_arv_menüü.pack()
+        kaardipakid_arv_menüü.pack(pady=5)
 
         valitud_nupp = ttk.Button(self.aken, text="Edasi", command=edasi)
-        valitud_nupp.pack()
+        valitud_nupp.pack(pady=5)
 
         self.aken.pack()
 
@@ -569,7 +573,6 @@ class MustJaak:
         def nupp(valik):
             kusimus_aken.destroy()
             self.aken.quit()
-
             self.käed = [käsi for käsi in self.käed if not käsi.ülemkäsi]
             self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
             self.MängijadArv = len(self.mängijad)
@@ -668,7 +671,8 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
                     # Alamkäsi mängijate nimekirja
                     # Alamkäele kutsutakse välja Mängija klass
-                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, mängija))
+                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, ülemkäsi=mängija,
+                                                split=mängija.split_arv))
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
 
                     uus_mängija = self.käed[i]
