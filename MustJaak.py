@@ -310,6 +310,9 @@ class MustJaak:
         taustapildifail = "Lisad/taust.jpg"
         self.taustapilt = Image.open(taustapildifail)
         self.taustapilt_tk = ImageTk.PhotoImage(self.taustapilt)
+        self.ikoon = Image.open("lisad/logo.png")
+        self.iconPhoto = ImageTk.PhotoImage(self.ikoon)
+        self.root.iconphoto(False, self.iconPhoto)
 
         self.kaardipakk = None
         self.mängijad = None
