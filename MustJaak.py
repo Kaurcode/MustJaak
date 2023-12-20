@@ -37,7 +37,7 @@ class Kaardipakk:
             self.sega()
         self.kaardihulk -= 1
         self.kaart = self.kaardipakk.pop(0)
-        # self.kaart = "Ruutu A"  # Testimiseks
+        self.kaart = "Ruutu A"  # Testimiseks
         return self.kaart, self.KaardiVäärtus[self.kaart]
 
     def sega(self):
@@ -570,7 +570,7 @@ class MustJaak:
     def lopp_aken(self):
         kusimus_aken = tk.Toplevel(self.root)
         kusimus_aken.title("Uus mäng?")
-        kusimus_aken.geometry("300x200+500+250")
+        kusimus_aken.geometry("300x150+500+250")
 
         kusimus_pealkiri = ttk.Label(kusimus_aken, text="Raund läbi, uuesti?")
         kusimus_pealkiri.pack(pady=20)
@@ -614,6 +614,7 @@ class MustJaak:
         for i, žetoon in enumerate(self.žetoonid[::-1]):
             hulk = raha // žetoon // max((2 - i * kordaja), 1)
             hulk = min(hulk, int(mängija.žetoonid[žetoon].get()))
+            hulk = max(hulk, 0)
             väärtused[žetoon] = int(hulk)
             väärtus = žetoon * hulk
             väärtused["kokku"] += int(väärtus)
@@ -693,7 +694,7 @@ class MustJaak:
             žetoonid_valik.grid(row=5, column=i, padx=5, pady=5)
 
         edasi_nupp = ttk.Button(self.aken, text="Edasi", command=lambda: self.aken.quit())
-        edasi_nupp.grid(row=6, columnspan=self.MängijadArv)
+        edasi_nupp.grid(row=6, columnspan=max(self.MängijadArv, 1), pady=5)
         self.aken.pack()
         self.aken.mainloop()
 
@@ -775,13 +776,14 @@ class MustJaak:
                     mängija.uuskaart(self.kaardipakk.hit())
                 # Ainult üks uus kaart (topelt panus)
                 elif valik == "Double" and mängija.luba_double == 1:
-                    raha = int(mängija.panus["kokku"].get())
-                    mängija.panus["kokku"].set(str(raha * 2))
-                    mängija.žetoonid["kokku"].set(str(int(mängija.žetoonid["kokku"].get()) - raha))
+                    mängitav = mängija.ülemkäsi if mängija.ülemkäsi else mängija
+                    raha = int(mängitav.panus["kokku"].get())
+                    mängitav.panus["kokku"].set(str(raha * 2))
+                    mängitav.žetoonid["kokku"].set(str(int(mängitav.žetoonid["kokku"].get()) - raha))
                     for žetoon in self.žetoonid:
-                        hulk = int(mängija.panus[žetoon].get())
-                        mängija.panus[žetoon].set(str(hulk * 2))
-                        mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) - hulk))
+                        hulk = int(mängitav.panus[žetoon].get())
+                        mängitav.panus[žetoon].set(str(hulk * 2))
+                        mängitav.žetoonid[žetoon].set(str(int(mängitav.žetoonid[žetoon].get()) - hulk))
                     mängija.uuskaart(self.kaardipakk.hit())
                     print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
                     self.root.update()
@@ -798,12 +800,12 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
                     # Alamkäsi mängijate nimekirja
                     # Alamkäele kutsutakse välja Mängija klass
-                    raha = int(mängija.panus["kokku"].get())
-                    mängija.žetoonid["kokku"].set(str(int(mängija.žetoonid["kokku"].get()) - raha))
-                    for žetoon in self.žetoonid:
-                        hulk = int(mängija.panus[žetoon].get())
-                        mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) - hulk))
                     ülemkäsi = mängija.ülemkäsi if mängija.ülemkäsi else mängija
+                    raha = int(ülemkäsi.panus["kokku"].get())
+                    ülemkäsi.žetoonid["kokku"].set(str(int(ülemkäsi.žetoonid["kokku"].get()) - raha))
+                    for žetoon in self.žetoonid:
+                        hulk = int(ülemkäsi.panus[žetoon].get())
+                        ülemkäsi.žetoonid[žetoon].set(str(int(ülemkäsi.žetoonid[žetoon].get()) - hulk))
                     self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, ülemkäsi=ülemkäsi,
                                                 split=mängija.split_arv))
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
