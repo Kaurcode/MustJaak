@@ -707,7 +707,6 @@ class MustJaak:
             žetoonid = int(mängija.žetoonid[žetoon].get())
             mängija.žetoonid[žetoon].set(str(žetoonid + uus_hulk))
         vahe = uus_summa - summa
-        print(vahe)
         if vahe > 0:
             for žetoon in self.žetoonid[::-1]:
                 hulk = vahe // žetoon
@@ -773,6 +772,13 @@ class MustJaak:
                     mängija.uuskaart(self.kaardipakk.hit())
                 # Ainult üks uus kaart (topelt panus)
                 elif valik == "Double" and mängija.luba_double == 1:
+                    raha = int(mängija.panus["kokku"].get())
+                    mängija.panus["kokku"].set(str(raha * 2))
+                    mängija.žetoonid["kokku"].set(str(int(mängija.žetoonid["kokku"].get()) - raha))
+                    for žetoon in self.žetoonid:
+                        hulk = int(mängija.panus[žetoon].get())
+                        mängija.panus[žetoon].set(str(hulk * 2))
+                        mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) - hulk))
                     mängija.uuskaart(self.kaardipakk.hit())
                     print(f"{mängija.nimi} kaardid on: {mängija.kaardid} ning väärtus on {mängija.väärtus}")
                     self.root.update()
@@ -789,6 +795,11 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
                     # Alamkäsi mängijate nimekirja
                     # Alamkäele kutsutakse välja Mängija klass
+                    raha = int(mängija.panus["kokku"].get())
+                    mängija.žetoonid["kokku"].set(str(int(mängija.žetoonid["kokku"].get()) - raha))
+                    for žetoon in self.žetoonid:
+                        hulk = int(mängija.panus[žetoon].get())
+                        mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) - hulk))
                     ülemkäsi = mängija.ülemkäsi if mängija.ülemkäsi else mängija
                     self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, ülemkäsi=ülemkäsi,
                                                 split=mängija.split_arv))
