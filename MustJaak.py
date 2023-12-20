@@ -50,13 +50,14 @@ class Kaardipakk:
 
 # Igal mängijal oma käsi(kaardid) ning load, mida ta teha võib
 class Mängija:
-    def __init__(self, nimi, kaardipakk, inimene=0, žetoonid=500, ülemkäsi=None, split=0):
+    def __init__(self, nimi, kaardipakk, inimene=0, žetoonid=None, ülemkäsi=None, split=0):
         self.inimene = inimene
         self.ülemkäsi = ülemkäsi
 
         self.nimi = nimi
         self.TKnimi = tk.StringVar(value=nimi)
         self.žetoonid = žetoonid
+        self.panus = None
 
         self.kaardid = []  # Käesolevad kaardid
         self.TKkaardid = tk.StringVar()
@@ -326,6 +327,7 @@ class MustJaak:
 
         # Mängusätete määramine
         self.Kaardipakke = 4
+        self.žetoonid = (1, 5, 25, 100, 500)
         self.MängijadArv = None
         self.KäedArv = None
         self.mängusätted()
@@ -337,8 +339,11 @@ class MustJaak:
             self.Kaardipakke = int(kaardipakid_arv_valik.get())
             self.kaardipakk = Kaardipakk(self.Kaardipakke)  # Uus kaardipakk
 
-            self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get())
+            self.käed = [Mängija(mängija["nimi"].get(), self.kaardipakk, mängija["inimene"].get(), mängija["žetoonid"])
                          for mängija in p_valikud.values() if mängija["olek"].get() == 1]
+            for mängija in self.käed:
+                mängija.panus = {väärtus: tk.StringVar(value="0") for väärtus in self.žetoonid}
+                mängija.panus["kokku"] = tk.StringVar(value="0")
             self.mängijad = {mängija.nimi: [mängija] for mängija in self.käed}
 
             self.MängijadArv = len(self.mängijad)
@@ -393,8 +398,7 @@ class MustJaak:
             žetoonid_näit.configure(state="readonly")
             žetoonid_näit.grid(row=0, column=0, columnspan=3, pady=5)
 
-            žetoonid = (1, 5, 25, 100, 500)
-            for j, žetoon in enumerate(žetoonid):
+            for j, žetoon in enumerate(self.žetoonid):
                 j += 1
                 žetoon_pealkiri = ttk.Label(žetoonid_valik, text=str(žetoon))
                 žetoon_nupp_m = ttk.Button(žetoonid_valik, text="-", width=3,
@@ -601,11 +605,101 @@ class MustJaak:
 
         self.aken.mainloop()
 
+    def raha_žetooniks(self, mängija, raha):
+        väärtused = {"kokku": 0}
+        kordaja = 1 / (len(self.žetoonid) // 2 + 1)
+        for i, žetoon in enumerate(self.žetoonid[::-1]):
+            hulk = raha // žetoon // max((2 - i * kordaja), 1)
+            hulk = min(hulk, int(mängija.žetoonid[žetoon].get()))
+            väärtused[žetoon] = int(hulk)
+            väärtus = žetoon * hulk
+            väärtused["kokku"] += int(väärtus)
+            raha -= väärtus
+        for žetoon, hulk in väärtused.items():
+            mängija.panus[žetoon].set(str(hulk))
+
+    def panustamine(self):
+        rahad = {mängija: {žetoon: tk.StringVar(value=väärtus.get()) for žetoon, väärtus in mängija.žetoonid.items()}
+                 for mängija in self.käed}
+
+        def liida_žetoone(väärtus, mängitav):
+            algne_panus = int(mängitav.panus[väärtus].get())
+            mängitav.panus[väärtus].set(str(algne_panus + 1))
+            algne = int(rahad[mängitav][väärtus].get())
+            rahad[mängitav][väärtus].set(str(algne - 1))
+
+            algne_panus_kokku = int(mängitav.panus["kokku"].get())
+            mängitav.panus["kokku"].set(str(algne_panus_kokku + väärtus))
+            algne_kokku = int(rahad[mängitav]["kokku"].get())
+            rahad[mängitav]["kokku"].set(str(algne_kokku - väärtus))
+
+        def lahuta_žetoone(väärtus, mängitav):
+            algne_panus = int(mängitav.panus[väärtus].get())
+            mängitav.panus[väärtus].set(str(algne_panus - 1))
+            algne = int(rahad[mängitav][väärtus].get())
+            rahad[mängitav][väärtus].set(str(algne + 1))
+
+            algne_panus_kokku = int(mängitav.panus["kokku"].get())
+            mängitav.panus["kokku"].set(str(algne_panus_kokku - väärtus))
+            algne_kokku = int(rahad[mängitav]["kokku"].get())
+            rahad[mängitav]["kokku"].set(str(algne_kokku + väärtus))
+
+        self.aken.destroy()
+        self.aken = ttk.Frame(self.root)
+        for i, mängija in enumerate(self.käed):
+            if not int(mängija.panus["kokku"].get()) or False in [int(väärtus.get()) <=
+                                                                  int(mängija.žetoonid[žetoon].get())
+                                                                  for žetoon, väärtus in mängija.panus.items()]:
+                self.raha_žetooniks(mängija, int(mängija.žetoonid["kokku"].get()) * 0.05)
+            for žetoon in rahad[mängija]:
+                rahad[mängija][žetoon].set(str(int(rahad[mängija][žetoon].get()) - int(mängija.panus[žetoon].get())))
+            nimi = ttk.Label(self.aken, text=mängija.nimi)
+            nimi.grid(column=i, row=0, pady=5)
+            rahanäit_h = ttk.Label(self.aken, text="Raha:")
+            rahanäit_h.grid(column=i, row=1, pady=3)
+            rahanäit = ttk.Entry(self.aken, justify="center", textvariable=rahad[mängija]["kokku"])
+            rahanäit.configure(state="readonly")
+            rahanäit.grid(column=i, row=2)
+            panus_näit_h = ttk.Label(self.aken, text="Panus:")
+            panus_näit_h.grid(column=i, row=3, pady=3)
+            panus_näit = ttk.Entry(self.aken, justify="center", textvariable=mängija.panus["kokku"])
+            panus_näit.configure(state="readonly")
+            panus_näit.grid(column=i, row=4)
+            žetoonid_valik = ttk.Frame(self.aken)
+
+            for j, žetoon in enumerate(self.žetoonid):
+                žetoon_pealkiri = ttk.Label(žetoonid_valik, text=str(žetoon))
+                žetoon_nupp_m = ttk.Button(žetoonid_valik, text="-", width=3,
+                                           command=lambda väärtus=žetoon, mängitav=mängija:
+                                           lahuta_žetoone(väärtus, mängitav))
+                alles_näit = ttk.Entry(žetoonid_valik, width=10, justify="center",
+                                       textvariable=rahad[mängija][žetoon])
+                alles_näit.configure(state="readonly")
+                žetoon_näit = ttk.Entry(žetoonid_valik, width=10, justify="center", textvariable=mängija.panus[žetoon])
+                žetoon_näit.configure(state="readonly")
+                žetoon_nupp_p = ttk.Button(žetoonid_valik, text="+", width=3,
+                                           command=lambda väärtus=žetoon, mängitav=mängija:
+                                           liida_žetoone(väärtus, mängitav))
+
+                žetoon_pealkiri.grid(row=3 * j, column=0, columnspan=3, pady=2)
+                alles_näit.grid(row=3 * j + 1, column=0, columnspan=3)
+                žetoon_nupp_m.grid(row=3 * j + 2, column=0, pady=1)
+                žetoon_näit.grid(row=3 * j + 2, column=1, pady=1)
+                žetoon_nupp_p.grid(row=3 * j + 2, column=2, pady=1)
+
+            žetoonid_valik.grid(row=5, column=i, padx=5, pady=5)
+
+        edasi_nupp = ttk.Button(self.aken, text="Edasi", command=lambda: self.aken.quit())
+        edasi_nupp.grid(row=6, columnspan=self.MängijadArv)
+        self.aken.pack()
+        self.aken.mainloop()
+
     def mäng(self):
-        if self.kaardipakk.vahekaart < self.kaardipakk.kaardihulk:
-            self.kaardipakk.sega()
+        self.panustamine()
         self.diiler = Mängija("Diiler", self.kaardipakk)
         self.mängulaud()
+        if self.kaardipakk.vahekaart < self.kaardipakk.kaardihulk:
+            self.kaardipakk.sega()
         i = 0
         while self.KäedArv * 2 > i:
             mängija = self.käed[i % self.KäedArv]
