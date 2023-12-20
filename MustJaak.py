@@ -788,7 +788,7 @@ class MustJaak:
 
     # Mänguloogika
     def mäng(self):
-        self.panustamine() # Panused
+        self.panustamine()  # Panused
         for mängija in self.käed:  # Mängijate panused lahutatakse nende žetoonide väärtustest
             for žetoon in mängija.panus:
                 mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) -
