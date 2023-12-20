@@ -694,8 +694,32 @@ class MustJaak:
         self.aken.pack()
         self.aken.mainloop()
 
+    def tagastusraha(self, mängija, kordaja):
+        mängija = mängija.ülemkäsi if mängija.ülemkäsi else mängija
+        summa = 0
+        uus_summa = int(int(mängija.panus["kokku"].get()) * kordaja)
+        mängija.žetoonid["kokku"].set(str(int(mängija.žetoonid["kokku"].get()) + uus_summa))
+
+        for žetoon in self.žetoonid:
+            hulk = int(mängija.panus[žetoon].get())
+            uus_hulk = int(hulk * kordaja)
+            summa += uus_hulk * žetoon
+            žetoonid = int(mängija.žetoonid[žetoon].get())
+            mängija.žetoonid[žetoon].set(str(žetoonid + uus_hulk))
+        vahe = uus_summa - summa
+        print(vahe)
+        if vahe > 0:
+            for žetoon in self.žetoonid[::-1]:
+                hulk = vahe // žetoon
+                vahe -= hulk * žetoon
+                mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) + hulk))
+
     def mäng(self):
         self.panustamine()
+        for mängija in self.käed:
+            for žetoon in mängija.panus:
+                mängija.žetoonid[žetoon].set(str(int(mängija.žetoonid[žetoon].get()) -
+                                                 int(mängija.panus[žetoon].get())))
         self.diiler = Mängija("Diiler", self.kaardipakk)
         self.mängulaud()
         if self.kaardipakk.vahekaart < self.kaardipakk.kaardihulk:
@@ -765,7 +789,8 @@ class MustJaak:
                     # Alamkäsi kui eraldi mängija
                     # Alamkäsi mängijate nimekirja
                     # Alamkäele kutsutakse välja Mängija klass
-                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, ülemkäsi=mängija,
+                    ülemkäsi = mängija.ülemkäsi if mängija.ülemkäsi else mängija
+                    self.käed.insert(i, Mängija(mängija.nimi, self.kaardipakk, mängija.inimene, ülemkäsi=ülemkäsi,
                                                 split=mängija.split_arv))
                     self.KäedArv += 1  # Et loop kestaks ühe mängija võrra kauem (nüüd üks mängija rohkem)
 
@@ -815,27 +840,33 @@ class MustJaak:
         for mängija in self.käed:
             if mängija.TKvalik.get() == "Surrender":
                 mängija.valiku_kast.config(fg="red")
+                self.tagastusraha(mängija, 0.5)
             elif self.diiler.blackjack:
                 if mängija.blackjack:
                     mängija.TKvalik.set("Push")
                     mängija.valiku_kast.config(fg="yellow")
+                    self.tagastusraha(mängija, 1)
                 else:
                     mängija.TKvalik.set("Loss")
                     mängija.valiku_kast.config(fg="red")
             elif mängija.blackjack:
                 mängija.valiku_kast.config(fg="green")
+                self.tagastusraha(mängija, 2.5)
             elif mängija.väärtus > 21:
                 mängija.TKvalik.set("Bust")
                 mängija.valiku_kast.config(fg="red")
             elif mängija.väärtus == self.diiler.väärtus:
                 mängija.TKvalik.set("Push")
                 mängija.valiku_kast.config(fg="yellow")
+                self.tagastusraha(mängija, 1)
             elif self.diiler.väärtus > 21:
                 mängija.TKvalik.set("Win")
                 mängija.valiku_kast.config(fg="green")
+                self.tagastusraha(mängija, 2)
             elif mängija.väärtus > self.diiler.väärtus:
                 mängija.TKvalik.set("Win")
                 mängija.valiku_kast.config(fg="green")
+                self.tagastusraha(mängija, 2)
             else:
                 mängija.TKvalik.set("Loss")
                 mängija.valiku_kast.config(fg="red")
